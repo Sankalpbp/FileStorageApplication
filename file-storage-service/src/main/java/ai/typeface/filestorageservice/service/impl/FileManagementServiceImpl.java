@@ -19,12 +19,10 @@ public class FileManagementServiceImpl implements FileManagementService {
                            String metadata ) {
 
         String filePath = metadata + file.getOriginalFilename();
-        System.out.println ( filePath );
 
         try {
             Path fileToSave = Path.of ( filePath );
             Files.createDirectories( fileToSave.getParent () );
-            System.out.println ( fileToSave.getParent () );
             Files.write ( fileToSave, file.getBytes () );
             return getHashOfFileName ( filePath );
         } catch ( IOException | NoSuchAlgorithmException e ) {

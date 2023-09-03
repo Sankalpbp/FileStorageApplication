@@ -17,36 +17,29 @@ document.getElementById("uploadForm").addEventListener("submit", function (event
     uploadFile(formData);
 });
 
-document.getElementById("downloadForm").addEventListener("submit", function (event) {
+const downloadLink = document.getElementById("downloadLink");
+
+downloadLink.addEventListener("click", function (event) {
     event.preventDefault();
 
     const fileName = document.getElementById("metadataDownloadInput").value;
-    if ( !fileName ) {
-        alert ( "please provide the filename" );
+    if (!fileName) {
+        alert("Please provide the file name");
         return;
     }
 
-    downloadFile ( fileName );
+    downloadFile(fileName);
 });
 
-function downloadFile ( fileName ) {
-    fetch (`http://localhost:8081/files/download?filePath=${fileName}`, {
-        method: "GET"
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error("Network response was not ok");
-        }
-        return response.json(); 
-    })
-    .then(data => {
-        console.log("Response from server:", data);
-    })
-    .catch(error => {
-        console.error("Error:", error);
-    });
+function downloadFile(fileName) {
+    const anchor = document.createElement("a");
+    anchor.href = `http://localhost:8081/files/download?filePath=${fileName}`;
+    anchor.style.display = "none"; // Hide the anchor
+    anchor.setAttribute("download", fileName);
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
 }
-
 
 function uploadFile(formData) {
     fetch("http://localhost:8081/files/upload", {
