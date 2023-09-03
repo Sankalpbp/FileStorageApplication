@@ -1,9 +1,14 @@
 package ai.typeface.filestorageservice.service.impl;
 
+import ai.typeface.filestorageservice.service.CloudStorageService;
 import ai.typeface.filestorageservice.service.FileManagementService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -14,22 +19,42 @@ import java.security.NoSuchAlgorithmException;
 @Service
 public class FileManagementServiceImpl implements FileManagementService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger ( FileManagementServiceImpl.class );
+
+    private final CloudStorageService cloudStorageService;
+
+    public FileManagementServiceImpl ( CloudStorageService cloudStorageService ) {
+        this.cloudStorageService = cloudStorageService;
+    }
+
     @Override
-    public String upload ( MultipartFile file,
-                           String metadata ) {
+    public String upload ( MultipartFile file ) {
 
-        String filePath = metadata + file.getOriginalFilename();
+        LOGGER.debug ( "Started file upload operation." );
 
-        try {
-            Path fileToSave = Path.of ( filePath );
-            Files.createDirectories( fileToSave.getParent () );
-            Files.write ( fileToSave, file.getBytes () );
-            return getHashOfFileName ( filePath );
-        } catch ( IOException | NoSuchAlgorithmException e ) {
-            e.printStackTrace();
+        String originalFileName = file.getOriginalFilename();
+        if ( originalFileName == null ) {
+            /* TODO: Throw a relevant exception */
+            return "file name is not present";
         }
 
-        return "File couldn't be saved";
+        Path path = new File( originalFileName ).toPath ();
+        String fileIdentifier = "";
+
+        try {
+            String contentType = Files.probeContentType ( path );
+            fileIdentifier = cloudStorageService.uploadFile( file, originalFileName, contentType );
+
+            if ( fileIdentifier != null ) {
+                /* TODO: update the log message to show the file name as well */
+                LOGGER.info ( "File uploaded successfully, file name: 'dummy-name' and url: {}", fileIdentifier );
+            }
+        } catch (IOException e) {
+            /* Throw a Custom exception for GCS here */
+            throw new RuntimeException(e);
+        }
+
+        return fileIdentifier;
     }
 
     private String getHashOfFileName ( String filename ) throws NoSuchAlgorithmException {
@@ -49,4 +74,5 @@ public class FileManagementServiceImpl implements FileManagementService {
 
         return hexString.toString ();
     }
+
 }

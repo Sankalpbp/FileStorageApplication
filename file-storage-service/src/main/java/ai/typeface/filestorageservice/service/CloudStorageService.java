@@ -3,7 +3,8 @@ package ai.typeface.filestorageservice.service;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.web.multipart.MultipartFile;
 
-public interface FileManagementService {
+public interface CloudStorageService {
 
-    public String upload ( MultipartFile file );
+    public String uploadFile (MultipartFile file, String fileName, String contentType );
+
 }
