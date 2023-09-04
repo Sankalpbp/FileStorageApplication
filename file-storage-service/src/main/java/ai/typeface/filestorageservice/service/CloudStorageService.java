@@ -10,4 +10,6 @@ public interface CloudStorageService {
 
     public Blob downloadFile ( String filename );
 
+    public String updateFile ( MultipartFile file, String filename, String contentType );
+
 }

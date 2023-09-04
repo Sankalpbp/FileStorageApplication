@@ -8,7 +8,6 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,6 +21,8 @@ public class GoogleCloudStorageServiceImpl implements GoogleCloudStorageService 
 
     private static final Logger LOGGER = LoggerFactory.getLogger ( GoogleCloudStorageServiceImpl.class );
 
+    private Storage storage;
+
     @Value ( "${gcs.config.file}" )
     private String gcsConfigurationsFile;
 
@@ -33,6 +34,42 @@ public class GoogleCloudStorageServiceImpl implements GoogleCloudStorageService 
 
     @Value ( "${gcs.dir.name}" )
     private String gcsDirName;
+
+    @Override
+    public String updateFile ( MultipartFile file, String filename, String contentType ) {
+        /* TODO: Many of these strings contain repeating literals - put them in the Labels interface */
+        LOGGER.debug ( "Started file updating process on Google cloud storage." );
+
+        try {
+            byte [] fileData = FileUtils.readFileToByteArray ( convertFile ( file ) );
+
+            filename = gcsDirName + "/" + filename;
+
+            /* TODO: update the name of the file: my-bucket/documents/example.txt */
+            final BlobId blobId = BlobId.of ( gcsBucketId, filename );
+            final Blob blob = getStorage ().get ( blobId );
+
+            if ( blob != null ) {
+                boolean deleted = storage.delete ( blobId );
+
+                BlobInfo updatedBlobInfo = BlobInfo.newBuilder ( gcsBucketId, filename )
+                                                   .setContentType ( contentType )
+                                                   .build ();
+                Blob updatedBlob = storage.create ( updatedBlobInfo, fileData );
+
+                if ( updatedBlob != null ) {
+                    /* TODO: Replace the messages with the constant variables defined in the interfaces */
+                    LOGGER.info ( "File updated successfully to Google Cloud Storage." );
+                    return updatedBlob.getMediaLink ();
+                }
+            }
+
+        } catch ( Exception e ) {
+            LOGGER.debug ( "An error occurred while updating data. Exception: " + e );
+            /* TODO: Throw a custom exception */
+        }
+        return "File Update failed";
+    }
 
     @Override
     public String uploadFile ( MultipartFile file, String fileName, String contentType ) {
@@ -62,7 +99,7 @@ public class GoogleCloudStorageServiceImpl implements GoogleCloudStorageService 
             /* TODO: Throw a custom exception */
         }
 
-        return "";
+        return "File Upload failed";
     }
 
     @Override
@@ -91,12 +128,15 @@ public class GoogleCloudStorageServiceImpl implements GoogleCloudStorageService 
     }
 
     private Storage getStorage ( ) throws IOException {
-        final InputStream inputStream = new ClassPathResource ( gcsConfigurationsFile ).getInputStream ();
-        final StorageOptions options = StorageOptions.newBuilder()
-                .setProjectId ( gcsProjectId )
-                .setCredentials ( GoogleCredentials.fromStream ( inputStream ) )
-                .build ();
-        return options.getService ();
+        if ( storage == null ) {
+            final InputStream inputStream = new ClassPathResource ( gcsConfigurationsFile ).getInputStream ();
+            final StorageOptions options = StorageOptions.newBuilder()
+                    .setProjectId ( gcsProjectId )
+                    .setCredentials ( GoogleCredentials.fromStream ( inputStream ) )
+                    .build ();
+            storage = options.getService();
+        }
+        return storage;
     }
 
 }

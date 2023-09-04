@@ -29,6 +29,25 @@ public class FileManagementServiceImpl implements FileManagementService {
     }
 
     @Override
+    public String update ( MultipartFile file, String filename ) {
+        String originalFileName = file.getOriginalFilename();
+        if ( originalFileName == null ) {
+            /* TODO: Throw a relevant exception */
+            return "file name is not present";
+        }
+
+        Path path = new File( originalFileName ).toPath ();
+        String contentType = "";
+        try {
+            contentType = Files.probeContentType ( path );
+        } catch (IOException e) {
+            /* Throw a Custom exception for GCS here */
+            throw new RuntimeException(e);
+        }
+        return cloudStorageService.updateFile( file, filename, contentType );
+    }
+
+    @Override
     public Blob download (String filename ) {
         return cloudStorageService.downloadFile ( filename );
     }

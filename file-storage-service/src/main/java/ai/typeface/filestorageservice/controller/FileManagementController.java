@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -39,8 +38,21 @@ public class FileManagementController {
         return service.upload ( file );
     }
 
+    @PutMapping ( "/{filename}" )
+    public String updateFile ( @RequestParam ( "file" ) MultipartFile file, @PathVariable ( "filename" ) String filename ) {
+
+        LOGGER.debug ( "Called PUT files/{filename} API end point" );
+        if ( file.isEmpty () ) {
+            /* TODO: Throw a relevant exception */
+            return "No file found";
+        }
+        return service.update ( file, filename );
+    }
+
     @GetMapping ( "/{filename}" )
     public ResponseEntity<Resource> downloadFile( @PathVariable ( "filename" ) String filename) {
+
+        LOGGER.debug ( "Called GET files/{filename} API end point" );
 
         Blob blob = service.download ( filename );
 
