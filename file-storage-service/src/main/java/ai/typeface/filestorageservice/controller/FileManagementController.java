@@ -19,7 +19,11 @@ import java.util.UUID;
 @RequestMapping ( "/files" )
 public class FileManagementController {
 
-    /* TODO: Update all methods to return ResponseEntity<> */
+    /*
+    TODO:
+        1. Update all methods to return ResponseEntity<>
+        2. Handle all the incoming arguments by the client ( validate the arguments )
+    */
 
     private static final Logger LOGGER = LoggerFactory.getLogger ( FileManagementController.class );
 
@@ -56,10 +60,10 @@ public class FileManagementController {
         return service.update ( file, filename );
     }
 
-    @DeleteMapping ( "/{filename}" )
-    public String deleteFile ( @PathVariable ( "filename" ) String filename ) {
+    @DeleteMapping ( "/{fileIdentifier}" )
+    public String deleteFile ( @PathVariable ( "fileIdentifier" ) UUID fileIdentifier ) {
         LOGGER.debug ( "Called DELETE files/{filename} API end point" );
-        return service.delete ( filename );
+        return service.delete ( fileIdentifier );
     }
 
     @GetMapping ( "/{fileIdentifier}" )

@@ -3,7 +3,6 @@ package ai.typeface.filestorageservice.service.impl;
 import ai.typeface.filestorageservice.service.GoogleCloudStorageService;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.storage.*;
-import net.bytebuddy.utility.RandomString;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +15,6 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 public class GoogleCloudStorageServiceImpl implements GoogleCloudStorageService {
@@ -87,7 +85,7 @@ public class GoogleCloudStorageServiceImpl implements GoogleCloudStorageService 
             if ( blob != null ) {
                 boolean isDeleted = storage.delete ( blobId );
                 if ( isDeleted ) {
-                    return "File deleted Successfully!";
+                    return "File Successfully deleted from Google Cloud Storage!";
                 }
             }
         } catch (IOException e) {

@@ -35,11 +35,19 @@ public class FileMetadataServiceImpl implements FileMetadataService {
         return ( metadata == null ) ? null : entityToDTO ( metadata );
     }
 
+    @Override
     public List<FileMetadataDTO> getAll ( ) {
         List<FileMetadata> metadataList = repository.findAll ();
         return metadataList.stream ()
                            .map ( this::entityToDTO )
                            .toList ();
+    }
+
+    @Override
+    public String deleteByFilename ( String filename ) {
+        int numberOfRowsDeleted = repository.deleteByFilename ( filename );
+        return (numberOfRowsDeleted > 0) ? "File Metadata Deleted Successfully!"
+                         : "File Delete operation failed!";
     }
 
     private FileMetadata dtoToEntity ( FileMetadataDTO dto ) {

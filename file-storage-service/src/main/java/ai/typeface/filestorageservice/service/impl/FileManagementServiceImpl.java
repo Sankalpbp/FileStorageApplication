@@ -12,6 +12,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -57,7 +58,10 @@ public class FileManagementServiceImpl implements FileManagementService {
     }
 
     @Override
-    public String delete ( String filename ) {
+    @Transactional
+    public String delete ( UUID fileIdentifier ) {
+        String filename = getFilenameFromMetadata ( fileIdentifier );
+        LOGGER.info ( fileMetadataService.deleteByFilename ( filename ) );
         return cloudStorageService.deleteFile ( filename );
     }
 
@@ -68,13 +72,7 @@ public class FileManagementServiceImpl implements FileManagementService {
 
     @Override
     public Blob download ( UUID fileIdentifier ) {
-        FileMetadataDTO metadata = fileMetadataService.findByUniqueIdentifier ( fileIdentifier );
-        /* TODO: Throw a relevant exception here */
-        if ( metadata == null ) {
-            LOGGER.error ( "metadata corresponding to provided fileIdentifier: {} wasn't found.", fileIdentifier );
-            return null;
-        }
-        return cloudStorageService.downloadFile ( metadata.getFilename () );
+        return cloudStorageService.downloadFile ( getFilenameFromMetadata ( fileIdentifier ) );
     }
 
     /* TODO: This method should potentially be refactored */
@@ -118,6 +116,16 @@ public class FileManagementServiceImpl implements FileManagementService {
         }
 
         return savedMetadata.getUniqueIdentifier ();
+    }
+
+    private String getFilenameFromMetadata ( UUID fileIdentifier ) {
+        FileMetadataDTO metadata = fileMetadataService.findByUniqueIdentifier ( fileIdentifier );
+        /* TODO: Throw a relevant exception here */
+        if ( metadata == null ) {
+            LOGGER.error ( "metadata corresponding to provided fileIdentifier: {} wasn't found.", fileIdentifier );
+            return null;
+        }
+        return metadata.getFilename();
     }
 
 }

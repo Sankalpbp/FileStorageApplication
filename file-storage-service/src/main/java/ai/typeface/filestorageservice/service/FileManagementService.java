@@ -15,7 +15,7 @@ public interface FileManagementService {
 
     public Blob download ( UUID filename );
 
-    public String delete ( String filename );
+    public String delete ( UUID fileIdentifier );
 
     public String update ( MultipartFile file, String filename );
 
