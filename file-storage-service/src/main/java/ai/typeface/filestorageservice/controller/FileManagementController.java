@@ -1,5 +1,7 @@
 package ai.typeface.filestorageservice.controller;
 
+import ai.typeface.filestorageservice.dtos.FileMetadataDTO;
+import ai.typeface.filestorageservice.entity.FileMetadata;
 import ai.typeface.filestorageservice.service.FileManagementService;
 import com.google.cloud.storage.Blob;
 import org.slf4j.Logger;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping ( "/files" )
@@ -29,14 +32,15 @@ public class FileManagementController {
                    consumes = {
                         MediaType.MULTIPART_FORM_DATA_VALUE
                    } )
-    public String uploadFile ( @RequestParam ( "file" ) MultipartFile file ) {
+    public UUID uploadFile ( @RequestParam ( "file" ) MultipartFile file ) {
 
         LOGGER.debug ( "Called files/upload API end point" );
-
         if ( file.isEmpty () ) {
             /* TODO: Throw a relevant exception */
-            return "No File found";
+            LOGGER.error ( "File provided is empty." );
+            return null;
         }
+
         return service.upload ( file );
     }
 

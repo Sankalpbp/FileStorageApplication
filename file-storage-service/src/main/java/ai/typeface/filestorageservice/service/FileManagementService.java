@@ -1,15 +1,17 @@
 package ai.typeface.filestorageservice.service;
 
+import ai.typeface.filestorageservice.dtos.FileMetadataDTO;
 import com.google.cloud.storage.Blob;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface FileManagementService {
 
-    public String upload ( MultipartFile file );
+    public UUID upload (MultipartFile file );
 
     public Blob download ( String filename );
 

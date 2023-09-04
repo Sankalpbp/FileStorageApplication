@@ -1,22 +1,26 @@
 package ai.typeface.filestorageservice.service.impl;
 
+import ai.typeface.filestorageservice.dtos.FileMetadataDTO;
+import ai.typeface.filestorageservice.entity.FileMetadata;
 import ai.typeface.filestorageservice.service.CloudStorageService;
 import ai.typeface.filestorageservice.service.FileManagementService;
+import ai.typeface.filestorageservice.service.FileMetadataService;
+import ai.typeface.filestorageservice.util.CloudStorageUtil;
+import ai.typeface.filestorageservice.util.FileMetadataUtil;
 import com.google.cloud.storage.Blob;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class FileManagementServiceImpl implements FileManagementService {
@@ -25,8 +29,12 @@ public class FileManagementServiceImpl implements FileManagementService {
 
     private final CloudStorageService cloudStorageService;
 
-    public FileManagementServiceImpl ( CloudStorageService cloudStorageService ) {
+    private final FileMetadataService fileMetadataService;
+
+    public FileManagementServiceImpl ( CloudStorageService cloudStorageService,
+                                       FileMetadataService fileMetadataService ) {
         this.cloudStorageService = cloudStorageService;
+        this.fileMetadataService = fileMetadataService;
     }
 
     @Override
@@ -38,7 +46,7 @@ public class FileManagementServiceImpl implements FileManagementService {
         }
 
         Path path = new File( originalFileName ).toPath ();
-        String contentType = "";
+        String contentType;
         try {
             contentType = Files.probeContentType ( path );
         } catch (IOException e) {
@@ -63,52 +71,47 @@ public class FileManagementServiceImpl implements FileManagementService {
         return cloudStorageService.downloadFile ( filename );
     }
 
+    /* TODO: This method should potentially be refactored */
+    /* TODO: remove metadata, it doesn't seem to be required */
     @Override
-    public String upload ( MultipartFile file ) {
+    public UUID upload ( MultipartFile file ) {
 
         LOGGER.debug ( "Started file upload operation." );
 
-        String originalFileName = file.getOriginalFilename();
-        if ( originalFileName == null ) {
-            /* TODO: Throw a relevant exception */
-            return "file name is not present";
+        // Storing file in Google Cloud Storage
+        String originalFileName = CloudStorageUtil.checkAndReturnOriginalFileName ( file );
+        /* TODO: remove these checks and throw an exception instead rom the util method */
+        if ( originalFileName.isEmpty() || originalFileName.isBlank () ) {
+            return null;
         }
 
-        Path path = new File( originalFileName ).toPath ();
-        String fileIdentifier = "";
+        final UUID uniqueIdentifier = UUID.nameUUIDFromBytes ( originalFileName.getBytes () );
+        String fileURL;
 
         try {
-            String contentType = Files.probeContentType ( path );
-            fileIdentifier = cloudStorageService.uploadFile( file, originalFileName, contentType );
+            fileURL = cloudStorageService.uploadFile( file, originalFileName, CloudStorageUtil.getContentType ( originalFileName ) );
 
-            if ( fileIdentifier != null ) {
+            if ( fileURL != null ) {
                 /* TODO: update the log message to show the file name as well */
-                LOGGER.info ( "File uploaded successfully, file name: 'dummy-name' and url: {}", fileIdentifier );
+                LOGGER.info ( "File uploaded successfully, file name: {} and url: {}", originalFileName, fileURL );
             }
         } catch (IOException e) {
-            /* Throw a Custom exception for GCS here */
+            /* TODO: Throw a Custom exception for GCS here */
             throw new RuntimeException(e);
         }
 
-        return fileIdentifier;
-    }
-
-    private String getHashOfFileName ( String filename ) throws NoSuchAlgorithmException {
-        final MessageDigest digest = MessageDigest.getInstance ( "SHA-256" );
-        byte [ ] inputBytes = filename.getBytes ( StandardCharsets.UTF_8 );
-        byte [ ] hashedBytes = digest.digest ( inputBytes );
-
-        final StringBuilder hexString = new StringBuilder ();
-
-        for ( final byte hashedByte : hashedBytes ) {
-            final String hex = Integer.toHexString ( 0xff & hashedByte );
-            if ( hex.length () == 1 ) {
-                hexString.append ( '0' );
-            }
-            hexString.append ( hex );
+        // Storing metadata in MySQL Database
+        FileMetadataDTO savedMetadata = null;
+        try {
+            savedMetadata = fileMetadataService.save ( FileMetadataUtil.createFileMetadataDTO ( originalFileName,
+                                                                                                uniqueIdentifier,
+                                                                                                file.getBytes(),
+                                                                                                fileURL) );
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
-        return hexString.toString ();
+        return savedMetadata.getUniqueIdentifier ();
     }
 
 }

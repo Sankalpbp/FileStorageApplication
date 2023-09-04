@@ -120,13 +120,10 @@ public class GoogleCloudStorageServiceImpl implements GoogleCloudStorageService 
             byte [ ] fileData = FileUtils.readFileToByteArray ( convertFile ( file ) );
 
             final Bucket bucket = getStorage ().get ( gcsBucketId, Storage.BucketGetOption.fields () );
-            final RandomString id = new RandomString ( 6, ThreadLocalRandom.current () );
 
             /* TODO: Replace the String literals with constant variables defined in an interface */
-            final Blob blob = bucket.create ( gcsDirName + "/" +
-                                                fileName + "_" + id.nextString () +
-                                                "." + fileName.split ("\\.")[1],
-                                                fileData, contentType );
+            /* TODO: Get the stored file name out of the method and create it outside for more readability */
+            final Blob blob = bucket.create ( gcsDirName + "/" + fileName, fileData, contentType );
 
             if ( blob != null ) {
                 /* TODO: Replace the messages with the constant variables defined in the interfaces */
