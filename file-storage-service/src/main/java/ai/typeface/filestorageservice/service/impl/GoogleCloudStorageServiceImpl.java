@@ -2,10 +2,7 @@ package ai.typeface.filestorageservice.service.impl;
 
 import ai.typeface.filestorageservice.service.GoogleCloudStorageService;
 import com.google.auth.oauth2.GoogleCredentials;
-import com.google.cloud.storage.Blob;
-import com.google.cloud.storage.Bucket;
-import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.StorageOptions;
+import com.google.cloud.storage.*;
 import net.bytebuddy.utility.RandomString;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -68,6 +65,18 @@ public class GoogleCloudStorageServiceImpl implements GoogleCloudStorageService 
         return "";
     }
 
+    @Override
+    public Blob downloadFile ( String filename ) {
+
+        BlobId blobId = BlobId.of(gcsBucketId, gcsDirName + "/" + filename);
+        try {
+            return getStorage().get(blobId);
+        } catch ( Exception e ) {
+            LOGGER.debug ( "An error occurred while downloading data. Exception: " + e );
+            /* TODO: Throw a custom exception */
+        }
+        return null;
+    }
 
     private File convertFile ( MultipartFile file ) {
         File convertedFile = new File (Objects.requireNonNull(file.getOriginalFilename()));

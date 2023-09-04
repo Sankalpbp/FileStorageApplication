@@ -1,6 +1,7 @@
 package ai.typeface.filestorageservice.controller;
 
 import ai.typeface.filestorageservice.service.FileManagementService;
+import com.google.cloud.storage.Blob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
@@ -10,7 +11,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 
 @RestController
 @RequestMapping ( "/files" )
@@ -30,7 +30,7 @@ public class FileManagementController {
                    } )
     public String uploadFile ( @RequestParam ( "file" ) MultipartFile file ) {
 
-        LOGGER.debug ( "Called /upload API end point" );
+        LOGGER.debug ( "Called files/upload API end point" );
 
         if ( file.isEmpty () ) {
             /* TODO: Throw a relevant exception */
@@ -38,5 +38,25 @@ public class FileManagementController {
         }
         return service.upload ( file );
     }
+
+    @GetMapping ( "/{filename}" )
+    public ResponseEntity<Resource> downloadFile( @PathVariable ( "filename" ) String filename) {
+
+        Blob blob = service.download ( filename );
+
+        if (blob != null) {
+            byte[] fileData = blob.getContent();
+            ByteArrayResource resource = new ByteArrayResource(fileData);
+
+            return ResponseEntity.ok()
+                    .headers( service.getHttpHeaders ( blob.getContentType (), filename ) )
+                    .contentType(MediaType.parseMediaType ( blob.getContentType() ) )
+                    .body(resource);
+        }
+
+        // Return ResponseEntity with an error message
+        return ResponseEntity.badRequest().body(new ByteArrayResource("File not found or download failed.".getBytes()));
+    }
+
 
 }

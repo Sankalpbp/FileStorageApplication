@@ -2,6 +2,7 @@ package ai.typeface.filestorageservice.service.impl;
 
 import ai.typeface.filestorageservice.service.CloudStorageService;
 import ai.typeface.filestorageservice.service.FileManagementService;
+import com.google.cloud.storage.Blob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
@@ -25,6 +26,11 @@ public class FileManagementServiceImpl implements FileManagementService {
 
     public FileManagementServiceImpl ( CloudStorageService cloudStorageService ) {
         this.cloudStorageService = cloudStorageService;
+    }
+
+    @Override
+    public Blob download (String filename ) {
+        return cloudStorageService.downloadFile ( filename );
     }
 
     @Override
