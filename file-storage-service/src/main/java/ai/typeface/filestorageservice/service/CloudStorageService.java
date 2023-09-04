@@ -5,6 +5,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface CloudStorageService {
 
@@ -12,7 +13,7 @@ public interface CloudStorageService {
 
     public Blob downloadFile ( String filename );
 
-    public String updateFile ( MultipartFile file, String filename, String contentType );
+    public String updateFile (MultipartFile file, String filename, String contentType );
 
     public String deleteFile ( String filename );
 

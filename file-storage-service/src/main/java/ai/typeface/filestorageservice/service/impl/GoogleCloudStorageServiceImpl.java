@@ -15,6 +15,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 public class GoogleCloudStorageServiceImpl implements GoogleCloudStorageService {
@@ -36,7 +37,7 @@ public class GoogleCloudStorageServiceImpl implements GoogleCloudStorageService 
     private String gcsDirName;
 
     @Override
-    public String updateFile ( MultipartFile file, String filename, String contentType ) {
+    public String updateFile (MultipartFile file, String filename, String contentType ) {
         /* TODO: Many of these strings contain repeating literals - put them in the Labels interface */
         LOGGER.debug ( "Started file updating process on Google cloud storage." );
 

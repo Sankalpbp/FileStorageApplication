@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -49,15 +50,31 @@ public class FileManagementController {
         return service.upload ( file );
     }
 
-    @PutMapping ( "/{filename}" )
-    public String updateFile ( @RequestParam ( "file" ) MultipartFile file, @PathVariable ( "filename" ) String filename ) {
+    @PutMapping ( "/{fileIdentifier}" )
+    public FileMetadataDTO updateFile ( @RequestParam ( value = "file", required = false ) MultipartFile file,
+                               @PathVariable ( "fileIdentifier" ) UUID fileIdentifier,
+                               @RequestParam ( value = "metadata", required = false ) FileMetadataDTO metadata ) {
 
         LOGGER.debug ( "Called PUT files/{filename} API end point" );
-        if ( file.isEmpty () ) {
-            /* TODO: Throw a relevant exception */
-            return "No file found";
+        if ( file == null && metadata == null ) {
+            LOGGER.error ( "Both file and metadata cannot be null together" );
+            return null;
         }
-        return service.update ( file, filename );
+        List<String> errors = ( metadata == null ) ? new ArrayList<>( 0 )
+                                                   : metadata.validate ();
+        if ( !errors.isEmpty () ) {
+            errors.forEach ( LOGGER::error );
+        }
+        if ( metadata == null && file.isEmpty () ) {
+            /* TODO: Throw a relevant exception */
+            LOGGER.error ( "No file found" );
+            return null;
+        }
+
+        if ( metadata != null ) {
+            return service.updateMetadata ( metadata );
+        }
+        return service.updateFileData ( file, fileIdentifier );
     }
 
     @DeleteMapping ( "/{fileIdentifier}" )

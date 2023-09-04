@@ -39,22 +39,44 @@ public class FileManagementServiceImpl implements FileManagementService {
     }
 
     @Override
-    public String update ( MultipartFile file, String filename ) {
-        String originalFileName = file.getOriginalFilename();
-        if ( originalFileName == null ) {
-            /* TODO: Throw a relevant exception */
-            return "file name is not present";
+    public FileMetadataDTO updateFileData ( MultipartFile file, UUID fileIdentifier ) {
+        String originalFileName = CloudStorageUtil.checkAndReturnOriginalFileName ( file );
+        /* TODO: remove these checks and throw an exception instead rom the util method */
+        if ( originalFileName.isEmpty() || originalFileName.isBlank () ) {
+            return null;
         }
 
-        Path path = new File( originalFileName ).toPath ();
+        FileMetadataDTO metadata = fileMetadataService.findByUniqueIdentifier ( fileIdentifier );
+        if ( metadata == null ) {
+            /* TODO: throw a custom exception */
+            LOGGER.error ( "Invalid Unique Identifier: {}", fileIdentifier );
+            return null;
+        }
+
         String contentType;
+
         try {
-            contentType = Files.probeContentType ( path );
+            contentType = CloudStorageUtil.getContentType ( originalFileName );
         } catch (IOException e) {
             /* Throw a Custom exception for GCS here */
             throw new RuntimeException(e);
         }
-        return cloudStorageService.updateFile( file, filename, contentType );
+
+        String fileURL = cloudStorageService.updateFile ( file, metadata.getFilename (), contentType );
+        metadata.setFileURL ( fileURL );
+
+        try {
+            return fileMetadataService.updateFileData ( FileMetadataUtil.createFileMetadataDTO ( metadata.getFilename (),
+                                                                                                 fileIdentifier,
+                                                                                                 file.getBytes (),
+                                                                                                 fileURL ) );
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public FileMetadataDTO updateMetadata ( FileMetadataDTO metadata ) {
+        return null;
     }
 
     @Override

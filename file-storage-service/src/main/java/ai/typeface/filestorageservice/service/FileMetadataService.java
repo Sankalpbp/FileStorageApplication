@@ -15,4 +15,6 @@ public interface FileMetadataService {
 
     public String deleteByFilename ( String filename );
 
+    public FileMetadataDTO updateFileData ( FileMetadataDTO metadata );
+
 }

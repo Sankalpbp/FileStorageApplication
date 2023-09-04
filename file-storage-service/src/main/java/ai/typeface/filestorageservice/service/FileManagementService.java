@@ -17,7 +17,9 @@ public interface FileManagementService {
 
     public String delete ( UUID fileIdentifier );
 
-    public String update ( MultipartFile file, String filename );
+    public FileMetadataDTO updateFileData ( MultipartFile file, UUID fileIdentifier );
+
+    public FileMetadataDTO updateMetadata ( FileMetadataDTO metadata );
 
     public List<FileMetadataDTO> getAllFiles ( );
 

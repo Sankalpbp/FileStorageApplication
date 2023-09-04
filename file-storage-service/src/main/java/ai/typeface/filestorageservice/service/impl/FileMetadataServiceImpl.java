@@ -46,8 +46,14 @@ public class FileMetadataServiceImpl implements FileMetadataService {
     @Override
     public String deleteByFilename ( String filename ) {
         int numberOfRowsDeleted = repository.deleteByFilename ( filename );
-        return (numberOfRowsDeleted > 0) ? "File Metadata Deleted Successfully!"
-                         : "File Delete operation failed!";
+        return ( numberOfRowsDeleted > 0 ) ? "File Metadata Deleted Successfully!"
+                                           : "File Delete operation failed!";
+    }
+
+    @Override
+    public FileMetadataDTO updateFileData ( FileMetadataDTO metadata ) {
+        FileMetadata updatedMetadata = dtoToEntity ( metadata );
+        return entityToDTO ( repository.save ( updatedMetadata ) );
     }
 
     private FileMetadata dtoToEntity ( FileMetadataDTO dto ) {
