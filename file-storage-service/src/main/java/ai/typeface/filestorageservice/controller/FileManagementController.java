@@ -49,6 +49,12 @@ public class FileManagementController {
         return service.update ( file, filename );
     }
 
+    @DeleteMapping ( "/{filename}" )
+    public String deleteFile ( @PathVariable ( "filename" ) String filename ) {
+        LOGGER.debug ( "Called DELETE files/{filename} API end point" );
+        return service.delete ( filename );
+    }
+
     @GetMapping ( "/{filename}" )
     public ResponseEntity<Resource> downloadFile( @PathVariable ( "filename" ) String filename) {
 

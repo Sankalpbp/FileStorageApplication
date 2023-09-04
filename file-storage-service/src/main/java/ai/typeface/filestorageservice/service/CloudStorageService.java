@@ -12,4 +12,6 @@ public interface CloudStorageService {
 
     public String updateFile ( MultipartFile file, String filename, String contentType );
 
+    public String deleteFile ( String filename );
+
 }

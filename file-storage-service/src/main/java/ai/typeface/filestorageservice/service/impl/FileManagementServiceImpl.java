@@ -48,6 +48,11 @@ public class FileManagementServiceImpl implements FileManagementService {
     }
 
     @Override
+    public String delete ( String filename ) {
+        return cloudStorageService.deleteFile ( filename );
+    }
+
+    @Override
     public Blob download (String filename ) {
         return cloudStorageService.downloadFile ( filename );
     }

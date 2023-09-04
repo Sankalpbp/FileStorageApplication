@@ -72,6 +72,31 @@ public class GoogleCloudStorageServiceImpl implements GoogleCloudStorageService 
     }
 
     @Override
+    public String deleteFile ( String filename ) {
+
+        LOGGER.debug ( "Started file deletion process on Google Cloud Storage." );
+
+        filename = gcsDirName + "/" + filename;
+
+        try {
+            final BlobId blobId = BlobId.of ( gcsBucketId, filename );
+            final Blob blob = getStorage ().get ( blobId );
+
+            if ( blob != null ) {
+                boolean isDeleted = storage.delete ( blobId );
+                if ( isDeleted ) {
+                    return "File deleted Successfully!";
+                }
+            }
+        } catch (IOException e) {
+            LOGGER.debug ( "An error occurred while deleting data. Exception: " + e );
+            /* TODO: Throw a custom exception */
+        }
+
+        return "Delete operation failed.";
+    }
+
+    @Override
     public String uploadFile ( MultipartFile file, String fileName, String contentType ) {
 
         LOGGER.debug ( "Started file uploading process on Google Cloud Storage." );

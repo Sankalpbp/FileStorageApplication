@@ -11,6 +11,8 @@ public interface FileManagementService {
 
     public Blob download ( String filename );
 
+    public String delete ( String filename );
+
     public String update ( MultipartFile file, String filename );
 
     default HttpHeaders getHttpHeaders (String contentType, String filename ) {
