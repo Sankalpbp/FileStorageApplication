@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
 @Service
 public class FileManagementServiceImpl implements FileManagementService {
@@ -50,6 +51,11 @@ public class FileManagementServiceImpl implements FileManagementService {
     @Override
     public String delete ( String filename ) {
         return cloudStorageService.deleteFile ( filename );
+    }
+
+    @Override
+    public List<String> getAllFiles ( ) {
+        return cloudStorageService.getAllFiles ();
     }
 
     @Override

@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @RestController
 @RequestMapping ( "/files" )
 public class FileManagementController {
@@ -74,6 +76,13 @@ public class FileManagementController {
 
         // Return ResponseEntity with an error message
         return ResponseEntity.badRequest().body(new ByteArrayResource("File not found or download failed.".getBytes()));
+    }
+
+    @GetMapping
+    public List<String> getAllFiles ( ) {
+        LOGGER.debug ( "Called GET /files API end point" );
+
+        return service.getAllFiles ( );
     }
 
 

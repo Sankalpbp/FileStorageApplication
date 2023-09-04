@@ -5,6 +5,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 public interface FileManagementService {
 
     public String upload ( MultipartFile file );
@@ -14,6 +16,8 @@ public interface FileManagementService {
     public String delete ( String filename );
 
     public String update ( MultipartFile file, String filename );
+
+    public List<String> getAllFiles ( );
 
     default HttpHeaders getHttpHeaders (String contentType, String filename ) {
         if (contentType == null) {

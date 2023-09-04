@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -94,6 +96,19 @@ public class GoogleCloudStorageServiceImpl implements GoogleCloudStorageService 
         }
 
         return "Delete operation failed.";
+    }
+
+    public List<String> getAllFiles ( ) {
+        List<String> filenames = new ArrayList<>();
+        try {
+            Iterable<Blob> blobs = getStorage ().list ( gcsBucketId, Storage.BlobListOption.prefix ( gcsDirName )).getValues ();
+            blobs.forEach ( blob -> filenames.add ( blob.getName () ) );
+        } catch (IOException e) {
+            LOGGER.debug ( "An error occurred while deleting data. Exception: " + e );
+            /* TODO: Throw a custom exception */
+        }
+
+        return filenames;
     }
 
     @Override
