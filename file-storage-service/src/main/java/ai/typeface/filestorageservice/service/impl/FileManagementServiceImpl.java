@@ -62,8 +62,8 @@ public class FileManagementServiceImpl implements FileManagementService {
     }
 
     @Override
-    public List<String> getAllFiles ( ) {
-        return cloudStorageService.getAllFiles ();
+    public List<FileMetadataDTO> getAllFiles ( ) {
+        return fileMetadataService.getAll ();
     }
 
     @Override

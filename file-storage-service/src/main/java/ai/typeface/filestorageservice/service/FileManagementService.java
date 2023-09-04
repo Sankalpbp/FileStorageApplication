@@ -19,7 +19,7 @@ public interface FileManagementService {
 
     public String update ( MultipartFile file, String filename );
 
-    public List<String> getAllFiles ( );
+    public List<FileMetadataDTO> getAllFiles ( );
 
     default HttpHeaders getHttpHeaders (String contentType, String filename ) {
         if (contentType == null) {

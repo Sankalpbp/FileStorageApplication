@@ -1,5 +1,6 @@
 package ai.typeface.filestorageservice.controller;
 
+import ai.typeface.filestorageservice.dtos.FileMetadataDTO;
 import ai.typeface.filestorageservice.service.FileManagementService;
 import com.google.cloud.storage.Blob;
 import org.slf4j.Logger;
@@ -83,7 +84,7 @@ public class FileManagementController {
     }
 
     @GetMapping
-    public List<String> getAllFiles ( ) {
+    public List<FileMetadataDTO> getAllFiles ( ) {
         LOGGER.debug ( "Called GET /files API end point" );
 
         return service.getAllFiles ( );

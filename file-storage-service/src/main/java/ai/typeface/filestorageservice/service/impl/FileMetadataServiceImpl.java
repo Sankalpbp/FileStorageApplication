@@ -6,6 +6,7 @@ import ai.typeface.filestorageservice.repository.FileMetadataRepository;
 import ai.typeface.filestorageservice.service.FileMetadataService;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -32,6 +33,13 @@ public class FileMetadataServiceImpl implements FileMetadataService {
         FileMetadata metadata = repository.findById ( uniqueIdentifier )
                                           .orElse ( null );
         return ( metadata == null ) ? null : entityToDTO ( metadata );
+    }
+
+    public List<FileMetadataDTO> getAll ( ) {
+        List<FileMetadata> metadataList = repository.findAll ();
+        return metadataList.stream ()
+                           .map ( this::entityToDTO )
+                           .toList ();
     }
 
     private FileMetadata dtoToEntity ( FileMetadataDTO dto ) {
