@@ -67,8 +67,14 @@ public class FileManagementServiceImpl implements FileManagementService {
     }
 
     @Override
-    public Blob download (String filename ) {
-        return cloudStorageService.downloadFile ( filename );
+    public Blob download ( UUID fileIdentifier ) {
+        FileMetadataDTO metadata = fileMetadataService.findByUniqueIdentifier ( fileIdentifier );
+        /* TODO: Throw a relevant exception here */
+        if ( metadata == null ) {
+            LOGGER.error ( "metadata corresponding to provided fileIdentifier: {} wasn't found.", fileIdentifier );
+            return null;
+        }
+        return cloudStorageService.downloadFile ( metadata.getFilename () );
     }
 
     /* TODO: This method should potentially be refactored */

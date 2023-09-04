@@ -13,7 +13,7 @@ public interface FileManagementService {
 
     public UUID upload (MultipartFile file );
 
-    public Blob download ( String filename );
+    public Blob download ( UUID filename );
 
     public String delete ( String filename );
 
