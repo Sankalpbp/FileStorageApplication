@@ -1,6 +1,7 @@
 package ai.typeface.filestorageservice.service;
 
 import ai.typeface.filestorageservice.dtos.FileMetadataDTO;
+import ai.typeface.filestorageservice.dtos.FileMetadataPageResponse;
 import com.google.cloud.storage.Blob;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -21,7 +22,7 @@ public interface FileManagementService {
 
     public FileMetadataDTO updateMetadata ( FileMetadataDTO metadata, UUID fileIdentifier );
 
-    public List<FileMetadataDTO> getAllFiles ( );
+    public FileMetadataPageResponse getAllFiles (int pageNumber, int pageSize, String sortBy, String sortDir );
 
     default HttpHeaders getHttpHeaders (String contentType, String filename ) {
         if (contentType == null) {

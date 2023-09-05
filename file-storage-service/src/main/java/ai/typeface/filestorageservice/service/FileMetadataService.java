@@ -1,6 +1,7 @@
 package ai.typeface.filestorageservice.service;
 
 import ai.typeface.filestorageservice.dtos.FileMetadataDTO;
+import ai.typeface.filestorageservice.dtos.FileMetadataPageResponse;
 
 import java.util.List;
 import java.util.UUID;
@@ -11,7 +12,7 @@ public interface FileMetadataService {
 
     public FileMetadataDTO findByUniqueIdentifier ( UUID uniqueIdentifier );
 
-    public List<FileMetadataDTO> getAll ( );
+    public FileMetadataPageResponse getAll (int pageNumber, int pageSize, String sortBy, String sortDir );
 
     public String deleteByFilename ( String filename );
 

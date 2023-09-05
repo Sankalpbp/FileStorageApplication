@@ -33,4 +33,4 @@ build/
 .vscode/
 
 ### Google Cloud Storage key ###
-!**/src/main/resources/gcs-configurations.json
+/src/main/resources/gcs-configurations.json

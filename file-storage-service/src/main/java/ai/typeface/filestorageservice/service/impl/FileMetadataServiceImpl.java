@@ -1,12 +1,17 @@
 package ai.typeface.filestorageservice.service.impl;
 
 import ai.typeface.filestorageservice.dtos.FileMetadataDTO;
+import ai.typeface.filestorageservice.dtos.FileMetadataPageResponse;
 import ai.typeface.filestorageservice.entity.FileMetadata;
 import ai.typeface.filestorageservice.exception.ResourceNotFoundException;
 import ai.typeface.filestorageservice.repository.FileMetadataRepository;
 import ai.typeface.filestorageservice.service.FileMetadataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -46,11 +51,28 @@ public class FileMetadataServiceImpl implements FileMetadataService {
 
     /* TODO: Add pagination to get all files */
     @Override
-    public List<FileMetadataDTO> getAll ( ) {
-        List<FileMetadata> metadataList = repository.findAll ();
-        return metadataList.stream ()
-                           .map ( this::entityToDTO )
-                           .toList ();
+    public FileMetadataPageResponse getAll (int pageNumber, int pageSize, String sortBy, String sortDir ) {
+        Sort sort = sortDir.equalsIgnoreCase ( Sort.Direction.ASC.name () )
+                            ? Sort.by ( sortBy ).ascending ()
+                            : Sort.by ( sortBy ).descending ();
+
+        Pageable pageable = PageRequest.of ( pageNumber, pageSize, sort );
+        Page<FileMetadata> pageOfFileMetadata = repository.findAll ( pageable );
+
+        List<FileMetadata> fileMetatadaList = pageOfFileMetadata.getContent ();
+
+        List<FileMetadataDTO> content =  fileMetatadaList.stream ()
+                                                         .map ( this::entityToDTO )
+                                                         .toList ();
+
+        return FileMetadataPageResponse.builder ()
+                                       .content ( content )
+                                       .pageNumber ( pageNumber )
+                                       .pageSize( pageSize )
+                                       .totalElements ( pageOfFileMetadata.getTotalElements() )
+                                       .totalPages ( pageOfFileMetadata.getTotalPages() )
+                                       .last ( pageOfFileMetadata.isLast () )
+                                       .build ();
     }
 
     @Override

@@ -1,6 +1,7 @@
 package ai.typeface.filestorageservice.service.impl;
 
 import ai.typeface.filestorageservice.dtos.FileMetadataDTO;
+import ai.typeface.filestorageservice.dtos.FileMetadataPageResponse;
 import ai.typeface.filestorageservice.entity.FileMetadata;
 import ai.typeface.filestorageservice.exception.GoogleCloudStorageException;
 import ai.typeface.filestorageservice.service.CloudStorageService;
@@ -104,8 +105,11 @@ public class FileManagementServiceImpl implements FileManagementService {
     }
 
     @Override
-    public List<FileMetadataDTO> getAllFiles ( ) {
-        return fileMetadataService.getAll ();
+    public FileMetadataPageResponse getAllFiles (int pageNumber,
+                                                 int pageSize,
+                                                 String sortBy,
+                                                 String sortDir ) {
+        return fileMetadataService.getAll ( pageNumber, pageSize, sortBy, sortDir );
     }
 
     @Override

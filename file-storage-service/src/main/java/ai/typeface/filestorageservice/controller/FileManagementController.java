@@ -1,6 +1,7 @@
 package ai.typeface.filestorageservice.controller;
 
 import ai.typeface.filestorageservice.dtos.FileMetadataDTO;
+import ai.typeface.filestorageservice.dtos.FileMetadataPageResponse;
 import ai.typeface.filestorageservice.service.FileManagementService;
 import com.google.cloud.storage.Blob;
 import org.slf4j.Logger;
@@ -40,16 +41,11 @@ public class FileManagementController {
     public ResponseEntity<UUID> uploadFile ( @RequestParam ( "file" ) MultipartFile file ) {
 
         LOGGER.debug ( "Called files/upload API end point" );
-        try {
-            if (file.isEmpty()) {
-                LOGGER.error ( "File provided is empty" );
-                throw new RuntimeException ( "File provided is empty" );
-            }
-            return ResponseEntity.ok ( service.upload(file) );
-        } catch ( Exception e ) {
-            LOGGER.error ( e.getMessage () );
-            return ResponseEntity.badRequest ().build ();
+        if (file.isEmpty()) {
+            LOGGER.error ( "File provided is empty" );
+            throw new RuntimeException ( "File provided is empty" );
         }
+        return ResponseEntity.status ( HttpStatus.CREATED ).body ( service.upload ( file ) );
     }
 
     @PutMapping ( "/{fileIdentifier}" )
@@ -59,35 +55,24 @@ public class FileManagementController {
 
         LOGGER.debug ( "Called PUT files/{filename} API end point" );
 
-        try {
-            if ( file == null && metadata == null ) {
-                throw new RuntimeException ( "Both file and metadata cannot be null together" );
-            }
-            if ( metadata == null && file.isEmpty () ) {
-                LOGGER.error ( "If file metadata provided in the request body is null, file must not be empty!" );
-                throw new RuntimeException ( "No file found" );
-            }
-
-            if ( metadata != null ) {
-                return ResponseEntity.ok ( service.updateMetadata ( metadata, fileIdentifier ) );
-            }
-            return ResponseEntity.ok ( service.updateFileData ( file, fileIdentifier ) );
-        } catch ( Exception e ) {
-            LOGGER.error ( e.getMessage () );
-            return ResponseEntity.badRequest().build ();
+        if ( file == null && metadata == null ) {
+            throw new RuntimeException ( "Both file and metadata cannot be null together" );
         }
+        if ( metadata == null && file.isEmpty () ) {
+            LOGGER.error ( "If file metadata provided in the request body is null, file must not be empty!" );
+            throw new RuntimeException ( "No file found" );
+        }
+
+        if ( metadata != null ) {
+            return ResponseEntity.ok ( service.updateMetadata ( metadata, fileIdentifier ) );
+        }
+        return ResponseEntity.ok ( service.updateFileData ( file, fileIdentifier ) );
     }
 
     @DeleteMapping ( "/{fileIdentifier}" )
     public ResponseEntity<String> deleteFile ( @PathVariable ( "fileIdentifier" ) UUID fileIdentifier ) {
         LOGGER.debug ( "Called DELETE files/{filename} API end point" );
-
-        try {
-            return ResponseEntity.ok ( service.delete ( fileIdentifier ) );
-        } catch ( Exception e ) {
-            LOGGER.error ( "An error occurred while deleting the file corresponding to fileIdentifier: {}.", fileIdentifier );
-            return ResponseEntity.badRequest ().build ();
-        }
+        return ResponseEntity.ok ( service.delete ( fileIdentifier ) );
     }
 
     @GetMapping ( "/{fileIdentifier}" )
@@ -97,30 +82,34 @@ public class FileManagementController {
 
         Blob blob = service.download ( fileIdentifier );
 
-        if (blob != null) {
-            byte[] fileData = blob.getContent();
-            ByteArrayResource resource = new ByteArrayResource(fileData);
-
-            return ResponseEntity.ok()
-                                 .headers( service.getHttpHeaders ( blob.getContentType (), blob.getName () ) )
-                                 .contentType(MediaType.parseMediaType ( blob.getContentType() ) )
-                                 .body(resource);
+        if ( blob == null ) {
+            LOGGER.info ( "File not found or download failed." );
+            return ResponseEntity.status ( HttpStatus.NO_CONTENT ).build ();
         }
 
-        return ResponseEntity.badRequest().body ( new ByteArrayResource ( "File not found or download failed.".getBytes() ) );
+        byte[] fileData = blob.getContent();
+        ByteArrayResource resource = new ByteArrayResource(fileData);
+
+        return ResponseEntity.ok()
+                             .headers( service.getHttpHeaders ( blob.getContentType (), blob.getName () ) )
+                             .contentType(MediaType.parseMediaType ( blob.getContentType() ) )
+                             .body(resource);
     }
 
     @GetMapping
-    public ResponseEntity<List<FileMetadataDTO>> getAllFiles ( ) {
+    public ResponseEntity<FileMetadataPageResponse> getAllFiles (
+            @RequestParam ( value = "pageNumber", defaultValue = "0", required = false ) int pageNumber,
+            @RequestParam ( value = "pageSize", defaultValue = "5", required = false ) int pageSize,
+            @RequestParam ( value = "sortBy", defaultValue = "uniqueIdentifier", required = false ) String sortBy,
+            @RequestParam ( value = "sortDir", defaultValue = "asc", required = false ) String sortDir
+    ) {
         LOGGER.debug ( "Called GET /files API end point" );
 
-        try {
-            List<FileMetadataDTO> files = service.getAllFiles ();
-            return ResponseEntity.ok ( files );
-        } catch ( Exception e ) {
-            LOGGER.error ( "An error occurred while fetching the files", e );
-            return ResponseEntity.badRequest ().build ();
+        FileMetadataPageResponse files = service.getAllFiles ( pageNumber, pageSize, sortBy, sortDir );
+        if ( files == null || files.getTotalElements() == 0 ) {
+            return ResponseEntity.status ( HttpStatus.NO_CONTENT ).build();
         }
+        return ResponseEntity.ok ( files );
     }
 
 }
