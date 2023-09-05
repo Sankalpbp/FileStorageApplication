@@ -36,7 +36,7 @@ public final class CloudStorageUtil {
             throw new FileMetadataValidationException ( HttpStatus.BAD_REQUEST, ValidationErrorMessages.MALFORMED_FILENAME );
         }
 
-        return partsOfFileName [ partsOfFileName.length - 1 ];
+        return originalFileName;
     }
 
     public static String getContentType ( String originalFileName ) {

@@ -27,7 +27,7 @@ public final class FileMetadataUtil {
         FileMetadataDTO dto = new FileMetadataDTO ();
 
         dto.setUniqueIdentifier ( uniqueIdentifier );
-        dto.setFileType ( filename.split (Symbols.BACKSLASH + Symbols.PERIOD )[ 1 ] );
+        dto.setFileType ( extractFileType ( filename ) );
         dto.setFilename ( filename );
         dto.setCreatedAt ( new Date () );
         dto.setSize ( new BigInteger( String.valueOf ( fileBytes ) ) );
@@ -44,7 +44,7 @@ public final class FileMetadataUtil {
         FileMetadataDTO dto = new FileMetadataDTO ();
 
         dto.setUniqueIdentifier ( uniqueIdentifier );
-        dto.setFileType ( filename.split (Symbols.BACKSLASH + Symbols.PERIOD )[ 1 ] );
+        dto.setFileType ( extractFileType ( filename ) );
         dto.setFilename ( filename );
         dto.setLastModifiedAt ( new Date () );
         dto.setCreatedAt ( createdAt );
@@ -64,7 +64,7 @@ public final class FileMetadataUtil {
         validateField(ValidationErrorMessages.FILE_TYPE, existingMetadata.getFileType(), metadata.getFileType(), ValidationErrorMessages.FILE_TYPE);
 
         if ( metadata.getFilename () != null ) {
-            String fileType = metadata.getFilename ().split ( Symbols.BACKSLASH + Symbols.PERIOD ) [ 1 ];
+            String fileType = extractFileType ( metadata.getFilename () );
             validateField(ValidationErrorMessages.FILE_TYPE, existingMetadata.getFileType(), fileType, ValidationErrorMessages.FILE_TYPE);
         }
 
@@ -97,6 +97,11 @@ public final class FileMetadataUtil {
             throw new FileMetadataValidationException(HttpStatus.BAD_REQUEST,
                     getExceptionMessage(errorMessage, existingValue, newValue));
         }
+    }
+
+    private static String extractFileType ( String filename ) {
+        String [] partsOfFile = filename.split ( Symbols.BACKSLASH + Symbols.PERIOD );
+        return partsOfFile [ partsOfFile.length - 1 ];
     }
 
 }
