@@ -1,5 +1,7 @@
 package ai.typeface.filestorageservice.util;
 
+import ai.typeface.filestorageservice.constants.Symbols;
+import ai.typeface.filestorageservice.constants.ValidationErrorMessages;
 import ai.typeface.filestorageservice.dtos.FileMetadataDTO;
 import ai.typeface.filestorageservice.entity.FileMetadata;
 import ai.typeface.filestorageservice.exception.FileMetadataValidationException;
@@ -25,7 +27,7 @@ public final class FileMetadataUtil {
         FileMetadataDTO dto = new FileMetadataDTO ();
 
         dto.setUniqueIdentifier ( uniqueIdentifier );
-        dto.setFileType ( filename.split ("\\." )[ 1 ] );
+        dto.setFileType ( filename.split (Symbols.BACKSLASH + Symbols.PERIOD )[ 1 ] );
         dto.setFilename ( filename );
         dto.setCreatedAt ( new Date () );
         dto.setSize ( new BigInteger( String.valueOf ( fileBytes ) ) );
@@ -42,7 +44,7 @@ public final class FileMetadataUtil {
         FileMetadataDTO dto = new FileMetadataDTO ();
 
         dto.setUniqueIdentifier ( uniqueIdentifier );
-        dto.setFileType ( filename.split ("\\." )[ 1 ] );
+        dto.setFileType ( filename.split (Symbols.BACKSLASH + Symbols.PERIOD )[ 1 ] );
         dto.setFilename ( filename );
         dto.setLastModifiedAt ( new Date () );
         dto.setCreatedAt ( createdAt );
@@ -54,42 +56,65 @@ public final class FileMetadataUtil {
 
     /* TODO: This needs some serious refactoring */
     public static void validateUpdateMetadataWithExistingMetadata ( FileMetadataDTO metadata,
-                                                                            FileMetadataDTO existingMetadata
-                                                                            ) {
-
-        List<String> errors = new ArrayList<>();
+                                                                    FileMetadataDTO existingMetadata
+                                                                    ) {
 
         if ( metadata.getSize () != null && !existingMetadata.getSize ().equals ( metadata.getSize () ) ) {
-            LOGGER.error ( "File Size cannot be updated without updating the file data. Existing size: {}, New size: {}",
-                    existingMetadata.getSize (), metadata.getSize () );
-            throw new FileMetadataValidationException ( HttpStatus.BAD_REQUEST, "File size cannot be updated without updating the file data. Existing size: " + existingMetadata.getSize ()
-                                                        + ", New size: " + metadata.getSize () );
+            LOGGER.error ( getLoggerMessage ( ValidationErrorMessages.SIZE ), existingMetadata.getSize (), metadata.getSize () );
+            throw new FileMetadataValidationException ( HttpStatus.BAD_REQUEST,
+                                                        getExceptionMessage ( ValidationErrorMessages.SIZE,
+                                                                                existingMetadata.getSize ().toString (),
+                                                                                metadata.getSize ().toString () ) );
         }
 
         if ( metadata.getFileURL () != null && !existingMetadata.getFileURL().equals ( metadata.getFileURL () ) ) {
-            LOGGER.error ( "File URL cannot be updated without updating the file data. Existing fileURL: {}, New fileURL: {}",
-                    existingMetadata.getSize (), metadata.getSize () );
-            throw new FileMetadataValidationException ( HttpStatus.BAD_REQUEST, "File URL cannot be updated without updating the file data. Existing fileURL: " + existingMetadata.getFileURL ()
-                                                        + ", New filetype: " + metadata.getFileURL () );
+            LOGGER.error ( getLoggerMessage ( ValidationErrorMessages.FILE_URL ), existingMetadata.getFileURL (), metadata.getFileURL () );
+            throw new FileMetadataValidationException ( HttpStatus.BAD_REQUEST,
+                                                        getExceptionMessage ( ValidationErrorMessages.FILE_URL,
+                                                                                existingMetadata.getFileURL(),
+                                                                                metadata.getFileURL() ) );
         }
 
         if ( metadata.getFileType () != null && !existingMetadata.getFileType().equals ( metadata.getFileType() ) ) {
-            LOGGER.error ( "File type cannot be updated without updating the file data. Existing fileType: {}, New fileType: {}",
-                    existingMetadata.getSize (), metadata.getSize () );
-            throw new FileMetadataValidationException ( HttpStatus.BAD_REQUEST, "File type cannot be updated without updating the file data. Existing filetype: " + existingMetadata.getFileType ()
-                                                        + ", New filetype: " + metadata.getFileType () );
+            LOGGER.error ( getLoggerMessage ( ValidationErrorMessages.FILE_TYPE ), existingMetadata.getFileType (), metadata.getFileType () );
+            throw new FileMetadataValidationException ( HttpStatus.BAD_REQUEST,
+                                                        getExceptionMessage ( ValidationErrorMessages.FILE_URL,
+                                                                                existingMetadata.getFileType(),
+                                                                                metadata.getFileType() ) );
         }
 
         if ( metadata.getFilename () != null ) {
-            String fileType = metadata.getFilename ().split ( "\\." ) [ 1 ];
+            String fileType = metadata.getFilename ().split ( Symbols.BACKSLASH + Symbols.PERIOD ) [ 1 ];
             if ( !existingMetadata.getFileType ().equals ( fileType ) ) {
-                LOGGER.error ( "File type cannot be updated without updating the file data. Existing fileType: {}, New fileType: {}",
-                        existingMetadata.getSize (), metadata.getSize () );
-                throw new FileMetadataValidationException ( HttpStatus.BAD_REQUEST, "File type cannot be updated without updating the file data. Existing filetype: " + existingMetadata.getFileType ()
-                                                        + ", New filetype: " + fileType );
+                LOGGER.error ( getLoggerMessage ( ValidationErrorMessages.FILE_TYPE ), existingMetadata.getFileType(), metadata.getFileType() );
+                throw new FileMetadataValidationException ( HttpStatus.BAD_REQUEST,
+                                                            getExceptionMessage ( ValidationErrorMessages.FILE_TYPE,
+                                                                                    existingMetadata.getFileType(),
+                                                                                    metadata.getFileType() ) );
             }
         }
 
+    }
+
+    private static String getExceptionMessage ( String attributeName, String existingAttributeValue, String newAttributeValue ) {
+        return String.format ( "%s %s %s %s: %s, %s %s: %s", attributeName,
+                                                             ValidationErrorMessages.UPDATE_ERROR_MESSAGE,
+                                                             ValidationErrorMessages.EXISTING,
+                                                             attributeName,
+                                                             existingAttributeValue,
+                                                             ValidationErrorMessages.NEW,
+                                                             attributeName,
+                                                             newAttributeValue );
+    }
+
+    private static String getLoggerMessage ( String attribute ) {
+        return String.format ( "%s %s %s %s: {}%s %s %s: {}", attribute,
+                                                              ValidationErrorMessages.UPDATE_ERROR_MESSAGE,
+                                                              ValidationErrorMessages.EXISTING,
+                                                              attribute,
+                                                              Symbols.COMMA,
+                                                              ValidationErrorMessages.NEW,
+                                                              attribute );
     }
 
 }

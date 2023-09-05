@@ -1,9 +1,14 @@
 package ai.typeface.filestorageservice.controller;
 
+import ai.typeface.filestorageservice.constants.ApiCalledMessages;
+import ai.typeface.filestorageservice.constants.ApiConstants;
+import ai.typeface.filestorageservice.constants.InfoMessages;
+import ai.typeface.filestorageservice.constants.ValidationErrorMessages;
 import ai.typeface.filestorageservice.dtos.FileMetadataDTO;
 import ai.typeface.filestorageservice.dtos.FileMetadataPageResponse;
 import ai.typeface.filestorageservice.service.FileManagementService;
 import com.google.cloud.storage.Blob;
+import com.google.protobuf.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
@@ -40,27 +45,27 @@ public class FileManagementController {
                    } )
     public ResponseEntity<UUID> uploadFile ( @RequestParam ( "file" ) MultipartFile file ) {
 
-        LOGGER.debug ( "Called files/upload API end point" );
+        LOGGER.debug (ApiCalledMessages.UPLOAD_API_CALLED);
         if (file.isEmpty()) {
-            LOGGER.error ( "File provided is empty" );
-            throw new RuntimeException ( "File provided is empty" );
+            LOGGER.error (ValidationErrorMessages.EMPTY_FILE_ERROR);
+            throw new RuntimeException ( ValidationErrorMessages.EMPTY_FILE_ERROR );
         }
         return ResponseEntity.status ( HttpStatus.CREATED ).body ( service.upload ( file ) );
     }
 
     @PutMapping ( "/{fileIdentifier}" )
     public ResponseEntity<FileMetadataDTO> updateFile ( @RequestParam ( value = "file", required = false ) MultipartFile file,
-                                        @PathVariable ( "fileIdentifier" ) UUID fileIdentifier,
-                                        @RequestBody ( required = false ) FileMetadataDTO metadata ) {
+                                                        @PathVariable ( "fileIdentifier" ) UUID fileIdentifier,
+                                                        @RequestBody ( required = false ) FileMetadataDTO metadata ) {
 
-        LOGGER.debug ( "Called PUT files/{filename} API end point" );
+        LOGGER.debug ( ApiCalledMessages.UPDATE_API_CALLED );
 
         if ( file == null && metadata == null ) {
-            throw new RuntimeException ( "Both file and metadata cannot be null together" );
+            throw new RuntimeException ( ValidationErrorMessages.FILE_AND_METADATA_NOT_NULL_TOGETHER );
         }
         if ( metadata == null && file.isEmpty () ) {
-            LOGGER.error ( "If file metadata provided in the request body is null, file must not be empty!" );
-            throw new RuntimeException ( "No file found" );
+            LOGGER.error ( ValidationErrorMessages.FILE_MUST_NOT_BE_EMPTY );
+            throw new RuntimeException ( ValidationErrorMessages.EMPTY_FILE_ERROR );
         }
 
         if ( metadata != null ) {
@@ -71,19 +76,19 @@ public class FileManagementController {
 
     @DeleteMapping ( "/{fileIdentifier}" )
     public ResponseEntity<String> deleteFile ( @PathVariable ( "fileIdentifier" ) UUID fileIdentifier ) {
-        LOGGER.debug ( "Called DELETE files/{filename} API end point" );
+        LOGGER.debug ( ApiCalledMessages.DELETE_API_CALLED );
         return ResponseEntity.ok ( service.delete ( fileIdentifier ) );
     }
 
     @GetMapping ( "/{fileIdentifier}" )
     public ResponseEntity<Resource> downloadFile( @PathVariable ( "fileIdentifier" ) UUID fileIdentifier ) {
 
-        LOGGER.debug ( "Called GET files/{fileIdentifier} API end point" );
+        LOGGER.debug ( ApiCalledMessages.GET_API_FOR_SINGLE_FILE_CALLED );
 
         Blob blob = service.download ( fileIdentifier );
 
         if ( blob == null ) {
-            LOGGER.info ( "File not found or download failed." );
+            LOGGER.error (InfoMessages.FILE_MUST_NOT_BE_EMPTY);
             return ResponseEntity.status ( HttpStatus.NO_CONTENT ).build ();
         }
 
@@ -98,10 +103,10 @@ public class FileManagementController {
 
     @GetMapping
     public ResponseEntity<FileMetadataPageResponse> getAllFiles (
-            @RequestParam ( value = "pageNumber", defaultValue = "0", required = false ) int pageNumber,
-            @RequestParam ( value = "pageSize", defaultValue = "5", required = false ) int pageSize,
-            @RequestParam ( value = "sortBy", defaultValue = "uniqueIdentifier", required = false ) String sortBy,
-            @RequestParam ( value = "sortDir", defaultValue = "asc", required = false ) String sortDir
+            @RequestParam ( value = "pageNumber", defaultValue = ApiConstants.DEFAULT_PAGE_NUMBER, required = false ) int pageNumber,
+            @RequestParam ( value = "pageSize", defaultValue = ApiConstants.DEFAULT_PAGE_SIZE, required = false ) int pageSize,
+            @RequestParam ( value = "sortBy", defaultValue = ApiConstants.DEFAULT_SORT_BY_FIELD, required = false ) String sortBy,
+            @RequestParam ( value = "sortDir", defaultValue = ApiConstants.DEFAULT_SORT_DIRECTION, required = false ) String sortDir
     ) {
         LOGGER.debug ( "Called GET /files API end point" );
 
