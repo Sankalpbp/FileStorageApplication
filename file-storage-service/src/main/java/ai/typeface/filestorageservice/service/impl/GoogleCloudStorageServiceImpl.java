@@ -36,8 +36,40 @@ public class GoogleCloudStorageServiceImpl implements GoogleCloudStorageService 
     @Value ( "${gcs.dir.name}" )
     private String gcsDirName;
 
+    public String updateFilename ( String existingFilename, String newFilename, String contentType ) {
+
+        LOGGER.debug ( "Started File name update process" );
+
+        try {
+            existingFilename = gcsDirName + "/" + existingFilename;
+            newFilename = gcsDirName + "/" + newFilename;
+            final BlobId blobId = BlobId.of ( gcsBucketId, existingFilename );
+            final Blob blob = getStorage ().get ( blobId );
+
+            if ( blob != null ) {
+                final byte [] fileData = blob.getContent ();
+                boolean isDeleted = storage.delete ( blobId );
+
+                BlobInfo updatedBlobInfo = BlobInfo.newBuilder ( gcsBucketId, newFilename )
+                                                   .setContentType ( contentType )
+                                                   .build ();
+                Blob updatedBlob = storage.create ( updatedBlobInfo, fileData );
+
+                if ( updatedBlob != null ) {
+                    /* TODO: Replace the messages with the constant variables defined in the interfaces */
+                    LOGGER.info ( "File name updated successfully to Google Cloud Storage." );
+                    return updatedBlob.getMediaLink ();
+                }
+            }
+        } catch ( Exception e ) {
+            LOGGER.debug ( "An error occurred while updating data. Exception: " + e );
+            /* TODO: Throw a custom exception */
+        }
+        return "Filename update operation failed";
+    }
+
     @Override
-    public String updateFile (MultipartFile file, String filename, String contentType ) {
+    public String updateFile ( MultipartFile file, String filename, String contentType ) {
         /* TODO: Many of these strings contain repeating literals - put them in the Labels interface */
         LOGGER.debug ( "Started file updating process on Google cloud storage." );
 
@@ -46,7 +78,6 @@ public class GoogleCloudStorageServiceImpl implements GoogleCloudStorageService 
 
             filename = gcsDirName + "/" + filename;
 
-            /* TODO: update the name of the file: my-bucket/documents/example.txt */
             final BlobId blobId = BlobId.of ( gcsBucketId, filename );
             final Blob blob = getStorage ().get ( blobId );
 

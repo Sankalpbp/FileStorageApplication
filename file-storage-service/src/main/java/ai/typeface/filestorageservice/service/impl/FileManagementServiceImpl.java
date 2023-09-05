@@ -39,6 +39,43 @@ public class FileManagementServiceImpl implements FileManagementService {
     }
 
     @Override
+    public FileMetadataDTO updateMetadata ( FileMetadataDTO metadataDTO, UUID fileIdentifier ) {
+
+        /* TODO: first update the name of the file in the GCS, then, call the following update method */
+        FileMetadataDTO existingMetadata = fileMetadataService.findByUniqueIdentifier ( fileIdentifier );
+        if ( existingMetadata == null ) {
+            LOGGER.error ( "No file found for the provided fileIdentifier: {}", fileIdentifier );
+            return null;
+        }
+
+        /* TODO: Move this repeated logic to a method */
+        String contentType;
+        try {
+            contentType = CloudStorageUtil.getContentType ( existingMetadata.getFilename () );
+        } catch (IOException e) {
+            /* TODO: Throw a Custom exception for GCS here */
+            throw new RuntimeException(e);
+        }
+
+        List<String> errors = FileMetadataUtil.validateUpdateMetadataWithExistingMetadata ( metadataDTO, existingMetadata, fileIdentifier );
+        if ( !errors.isEmpty () ) {
+            errors.forEach ( LOGGER::error );
+            return null;
+        }
+
+        String existingFilename = existingMetadata.getFilename();
+        String newFilename = metadataDTO.getFilename();
+        String fileURL = existingMetadata.getFileURL();
+        if ( !existingFilename.equals ( newFilename ) ) {
+            fileURL = cloudStorageService.updateFilename ( existingFilename, newFilename, contentType );
+        }
+
+        metadataDTO.setFileURL ( fileURL );
+
+        return fileMetadataService.updateFileMetadata ( metadataDTO, fileIdentifier );
+    }
+
+    @Override
     public FileMetadataDTO updateFileData ( MultipartFile file, UUID fileIdentifier ) {
         String originalFileName = CloudStorageUtil.checkAndReturnOriginalFileName ( file );
         /* TODO: remove these checks and throw an exception instead rom the util method */
@@ -58,7 +95,7 @@ public class FileManagementServiceImpl implements FileManagementService {
         try {
             contentType = CloudStorageUtil.getContentType ( originalFileName );
         } catch (IOException e) {
-            /* Throw a Custom exception for GCS here */
+            /* TODO: Throw a Custom exception for GCS here */
             throw new RuntimeException(e);
         }
 
@@ -66,10 +103,11 @@ public class FileManagementServiceImpl implements FileManagementService {
         metadata.setFileURL ( fileURL );
 
         try {
-            return fileMetadataService.updateFileData ( FileMetadataUtil.createFileMetadataDTO ( metadata.getFilename (),
-                                                                                                 fileIdentifier,
-                                                                                                 file.getBytes (),
-                                                                                                 fileURL ) );
+            return fileMetadataService.updateFileData ( FileMetadataUtil.createUpdatedFileMetadataDTO ( metadata.getFilename (),
+                                                                                                        fileIdentifier,
+                                                                                                        file.getBytes (),
+                                                                                                        fileURL,
+                                                                                                        metadata.getCreatedAt() ) );
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

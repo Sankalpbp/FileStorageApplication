@@ -52,18 +52,13 @@ public class FileManagementController {
 
     @PutMapping ( "/{fileIdentifier}" )
     public FileMetadataDTO updateFile ( @RequestParam ( value = "file", required = false ) MultipartFile file,
-                               @PathVariable ( "fileIdentifier" ) UUID fileIdentifier,
-                               @RequestParam ( value = "metadata", required = false ) FileMetadataDTO metadata ) {
+                                        @PathVariable ( "fileIdentifier" ) UUID fileIdentifier,
+                                        @RequestBody ( required = false ) FileMetadataDTO metadata ) {
 
         LOGGER.debug ( "Called PUT files/{filename} API end point" );
         if ( file == null && metadata == null ) {
             LOGGER.error ( "Both file and metadata cannot be null together" );
             return null;
-        }
-        List<String> errors = ( metadata == null ) ? new ArrayList<>( 0 )
-                                                   : metadata.validate ();
-        if ( !errors.isEmpty () ) {
-            errors.forEach ( LOGGER::error );
         }
         if ( metadata == null && file.isEmpty () ) {
             /* TODO: Throw a relevant exception */
@@ -72,7 +67,7 @@ public class FileManagementController {
         }
 
         if ( metadata != null ) {
-            return service.updateMetadata ( metadata );
+            return service.updateMetadata ( metadata, fileIdentifier );
         }
         return service.updateFileData ( file, fileIdentifier );
     }

@@ -29,18 +29,4 @@ public class FileMetadataDTO {
 
     private String fileURL;
 
-    public List<String> validate ( ) {
-        /* TODO: Create a ValidationError class - a generic validation errors for all types of validations */
-        List<String> errors = new ArrayList<>();
-        if ( filename.isEmpty () || filename.isBlank () ) {
-            errors.add ( "Filename is empty in the provided metadata" );
-        }
-
-        if ( fileType.isEmpty () || fileType.isBlank () ) {
-            errors.add ( "File type is empty in the provided metadata" );
-        }
-
-        return errors;
-    }
-
 }

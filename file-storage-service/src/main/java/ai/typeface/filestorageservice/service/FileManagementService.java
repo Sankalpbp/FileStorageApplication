@@ -19,7 +19,7 @@ public interface FileManagementService {
 
     public FileMetadataDTO updateFileData ( MultipartFile file, UUID fileIdentifier );
 
-    public FileMetadataDTO updateMetadata ( FileMetadataDTO metadata );
+    public FileMetadataDTO updateMetadata ( FileMetadataDTO metadata, UUID fileIdentifier );
 
     public List<FileMetadataDTO> getAllFiles ( );
 

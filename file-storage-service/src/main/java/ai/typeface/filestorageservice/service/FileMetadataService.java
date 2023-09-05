@@ -17,4 +17,6 @@ public interface FileMetadataService {
 
     public FileMetadataDTO updateFileData ( FileMetadataDTO metadata );
 
+    public FileMetadataDTO updateFileMetadata ( FileMetadataDTO metadata, UUID fileIdentifier );
+
 }
