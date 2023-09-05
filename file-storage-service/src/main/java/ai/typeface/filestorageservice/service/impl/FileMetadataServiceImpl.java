@@ -1,5 +1,9 @@
 package ai.typeface.filestorageservice.service.impl;
 
+import ai.typeface.filestorageservice.constants.ApiConstants;
+import ai.typeface.filestorageservice.constants.FailureMessages;
+import ai.typeface.filestorageservice.constants.InfoMessages;
+import ai.typeface.filestorageservice.constants.Symbols;
 import ai.typeface.filestorageservice.dtos.FileMetadataDTO;
 import ai.typeface.filestorageservice.dtos.FileMetadataPageResponse;
 import ai.typeface.filestorageservice.entity.FileMetadata;
@@ -42,8 +46,8 @@ public class FileMetadataServiceImpl implements FileMetadataService {
     @Override
     public FileMetadataDTO findByUniqueIdentifier ( UUID uniqueIdentifier ) {
         FileMetadata metadata = repository.findById ( uniqueIdentifier )
-                                          .orElseThrow ( () -> new ResourceNotFoundException ( "FileMetadata",
-                                                                                               "uniqueIdentifier",
+                                          .orElseThrow ( () -> new ResourceNotFoundException ( ApiConstants.FILE_METADATA,
+                                                                                               ApiConstants.UNIQUE_IDENTIFIER,
                                                                                                uniqueIdentifier.toString () )
                                           );
         return entityToDTO ( metadata );
@@ -79,10 +83,10 @@ public class FileMetadataServiceImpl implements FileMetadataService {
     public String deleteByFilename ( String filename ) {
         int numberOfRowsDeleted = repository.deleteByFilename ( filename );
         if ( numberOfRowsDeleted > 0 ) {
-            return "File Metadata Deleted Successfully!";
+            return InfoMessages.METADATA_DELETION_SUCCESS;
         } else {
-            LOGGER.error ( "File Delete operation failed!" );
-            throw new RuntimeException ( "File Delete operation failed!" );
+            LOGGER.error (FailureMessages.METADATA_DELETION_FAILED );
+            throw new RuntimeException (FailureMessages.METADATA_DELETION_FAILED );
         }
     }
 
@@ -94,12 +98,12 @@ public class FileMetadataServiceImpl implements FileMetadataService {
 
     public FileMetadataDTO updateFileMetadata ( FileMetadataDTO metadata, UUID fileIdentifier ) {
         FileMetadata existingMetadata = repository.findById ( fileIdentifier )
-                                                  .orElseThrow ( () -> new ResourceNotFoundException ( "FileMetadata",
-                                                                                                       "uniqueIdentifier",
+                                                  .orElseThrow ( () -> new ResourceNotFoundException ( ApiConstants.FILE_METADATA,
+                                                                                                       ApiConstants.UNIQUE_IDENTIFIER,
                                                                                                        fileIdentifier.toString () ) );
 
         if ( metadata.getFilename () != null ) {
-            existingMetadata.setFilename ( metadata.getFilename ().split ( "\\." ) [ 0 ] + "." + existingMetadata.getFileType() );
+            existingMetadata.setFilename ( metadata.getFilename ().split ( Symbols.BACKSLASH + Symbols.PERIOD ) [ 0 ] + Symbols.PERIOD + existingMetadata.getFileType() );
         }
         if ( metadata.getFileURL () != null ) {
             existingMetadata.setFileURL ( metadata.getFileURL () );

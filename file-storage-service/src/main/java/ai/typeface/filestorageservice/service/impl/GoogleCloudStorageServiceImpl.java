@@ -1,5 +1,8 @@
 package ai.typeface.filestorageservice.service.impl;
 
+import ai.typeface.filestorageservice.constants.FailureMessages;
+import ai.typeface.filestorageservice.constants.InfoMessages;
+import ai.typeface.filestorageservice.constants.Symbols;
 import ai.typeface.filestorageservice.exception.GoogleCloudStorageException;
 import ai.typeface.filestorageservice.service.GoogleCloudStorageService;
 import com.google.auth.oauth2.GoogleCredentials;
@@ -39,24 +42,24 @@ public class GoogleCloudStorageServiceImpl implements GoogleCloudStorageService 
 
     public String updateFilename ( String existingFilename, String newFilename, String contentType ) {
 
-        LOGGER.debug ( "Started File name update process" );
+        LOGGER.debug ( InfoMessages.FILE_UPDATE_STARTED );
 
-        existingFilename = gcsDirName + "/" + existingFilename;
+        existingFilename = gcsDirName + Symbols.SLASH + existingFilename;
         final BlobId blobId = BlobId.of ( gcsBucketId, existingFilename );
         final Blob blob = getStorage ().get ( blobId );
 
         if ( blob == null ) {
-            LOGGER.error ( "An error occurred while updating the file. File not found for provided filename: " + existingFilename );
-            throw new GoogleCloudStorageException ( HttpStatus.BAD_REQUEST, "File not found for provided filename: " + existingFilename );
+            LOGGER.error ( FailureMessages.NO_FILENAME_FOR_GIVEN_FILE + existingFilename );
+            throw new GoogleCloudStorageException ( HttpStatus.BAD_REQUEST, FailureMessages.NO_FILENAME_FOR_GIVEN_FILE + existingFilename );
         }
 
-        newFilename = gcsDirName + "/" + newFilename;
+        newFilename = gcsDirName + Symbols.SLASH + newFilename;
         final byte [] fileData = blob.getContent ();
         boolean isDeleted = storage.delete ( blobId );
 
         if ( !isDeleted ) {
-            LOGGER.error ( "An error occurred while deleting the file." );
-            throw new GoogleCloudStorageException ( HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while deleting the file." );
+            LOGGER.error (FailureMessages.GCS_DELETION_FAILED );
+            throw new GoogleCloudStorageException ( HttpStatus.INTERNAL_SERVER_ERROR, FailureMessages.GCS_DELETION_FAILED );
         }
 
         BlobInfo updatedBlobInfo = BlobInfo.newBuilder ( gcsBucketId, newFilename )
@@ -65,25 +68,25 @@ public class GoogleCloudStorageServiceImpl implements GoogleCloudStorageService 
         Blob updatedBlob = storage.create ( updatedBlobInfo, fileData );
 
         if ( updatedBlob == null ) {
-            LOGGER.error ( "File update operation failed on Google Cloud Storage. An error occurred while saving the file" );
-            throw new GoogleCloudStorageException ( HttpStatus.INTERNAL_SERVER_ERROR, "File update operation failed on Google Cloud Storage." );
+            LOGGER.error (FailureMessages.GCS_UPDATE_FAILED );
+            throw new GoogleCloudStorageException ( HttpStatus.INTERNAL_SERVER_ERROR, FailureMessages.GCS_UPDATE_FAILED );
         }
 
-        LOGGER.info ( "File updated successfully to Google Cloud Storage." );
+        LOGGER.info (InfoMessages.GCS_UPDATE_SUCCESS );
         return updatedBlob.getMediaLink ();
     }
 
     @Override
     public String updateFile ( MultipartFile file, String filename, String contentType ) {
-        LOGGER.debug ( "Started file updating process on Google cloud storage." );
+        LOGGER.debug ( InfoMessages.FILE_UPDATE_STARTED );
 
         byte [] fileData;
 
         try {
             fileData = FileUtils.readFileToByteArray ( convertFile ( file ) );
         } catch ( IOException e ) {
-            LOGGER.debug ( "An error occurred while reading provided file. Error: {}", e.getMessage () );
-            throw new RuntimeException ( "An error occurred while reading provided file. Error: " + e.getMessage () );
+            LOGGER.debug ( FailureMessages.ERROR_READING_PROVIDED_FILE + Symbols.OPENING_CURLY_BRACE + Symbols.CLOSING_CURLY_BRACE, e.getMessage () );
+            throw new RuntimeException ( FailureMessages.ERROR_READING_PROVIDED_FILE + e.getMessage () );
         }
 
         filename = gcsDirName + "/" + filename;
@@ -92,14 +95,14 @@ public class GoogleCloudStorageServiceImpl implements GoogleCloudStorageService 
         final Blob blob = getStorage ().get ( blobId );
 
         if ( blob == null ) {
-            LOGGER.error ( "An error occurred while updating the file. File not found for provided filename: " + filename );
-            throw new GoogleCloudStorageException ( HttpStatus.BAD_REQUEST, "File not found for provided filename: " + filename );
+            LOGGER.error ( FailureMessages.NO_FILENAME_FOR_GIVEN_FILE + filename );
+            throw new GoogleCloudStorageException ( HttpStatus.BAD_REQUEST, FailureMessages.NO_FILENAME_FOR_GIVEN_FILE + filename );
         }
 
         boolean isDeleted = storage.delete ( blobId );
         if ( !isDeleted ) {
-            LOGGER.error ( "An error occurred while deleting the file." );
-            throw new GoogleCloudStorageException ( HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while deleting the file." );
+            LOGGER.error (FailureMessages.GCS_DELETION_FAILED );
+            throw new GoogleCloudStorageException ( HttpStatus.INTERNAL_SERVER_ERROR, FailureMessages.GCS_DELETION_FAILED );
         }
 
         BlobInfo updatedBlobInfo = BlobInfo.newBuilder ( gcsBucketId, filename )
@@ -107,46 +110,46 @@ public class GoogleCloudStorageServiceImpl implements GoogleCloudStorageService 
                 .build ();
         Blob updatedBlob = storage.create ( updatedBlobInfo, fileData );
         if ( updatedBlob == null ) {
-            LOGGER.error ( "File update operation failed on Google Cloud Storage. An error occurred while saving the file" );
-            throw new GoogleCloudStorageException ( HttpStatus.INTERNAL_SERVER_ERROR, "File update operation failed on Google Cloud Storage." );
+            LOGGER.error (FailureMessages.GCS_UPDATE_FAILED );
+            throw new GoogleCloudStorageException ( HttpStatus.INTERNAL_SERVER_ERROR, FailureMessages.GCS_UPDATE_FAILED );
         }
 
-        LOGGER.info ( "File updated successfully to Google Cloud Storage." );
+        LOGGER.info (InfoMessages.GCS_UPDATE_SUCCESS );
         return updatedBlob.getMediaLink ();
     }
 
     @Override
     public String deleteFile ( String filename ) {
 
-        LOGGER.debug ( "Started file deletion process on Google Cloud Storage." );
+        LOGGER.debug ( InfoMessages.FILE_DELETION_STARTED );
 
-        filename = gcsDirName + "/" + filename;
+        filename = gcsDirName + Symbols.SLASH + filename;
 
         final BlobId blobId = BlobId.of ( gcsBucketId, filename );
         final Blob blob = getStorage ().get ( blobId );
 
         if ( blob == null ) {
-            LOGGER.error ( "An error occurred while deleting data. No file found for provided filename: " + filename );
-            throw new GoogleCloudStorageException ( HttpStatus.BAD_REQUEST, "An error occurred while deleting data. No file found for provided filename: " + filename );
+            LOGGER.error ( FailureMessages.NO_FILENAME_FOR_GIVEN_FILE + filename );
+            throw new GoogleCloudStorageException ( HttpStatus.BAD_REQUEST, FailureMessages.NO_FILENAME_FOR_GIVEN_FILE + filename );
         }
 
         boolean isDeleted = storage.delete ( blobId );
         if ( !isDeleted ) {
-            LOGGER.error ( "An error occurred while deleting the file." );
-            throw new GoogleCloudStorageException ( HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while deleting the file." );
+            LOGGER.error (FailureMessages.GCS_DELETION_FAILED );
+            throw new GoogleCloudStorageException ( HttpStatus.INTERNAL_SERVER_ERROR, FailureMessages.GCS_DELETION_FAILED );
         }
-        return "File Successfully deleted from Google Cloud Storage!";
+        return InfoMessages.GCS_DELETION_SUCCESS;
     }
 
     public List<String> getAllFiles ( ) {
         List<String> filenames = new ArrayList<>();
         Iterable<Blob> blobs = getStorage ().list ( gcsBucketId, Storage.BlobListOption.prefix ( gcsDirName ) ).getValues ();
         if ( blobs == null ) {
-            LOGGER.error ( "Files couldn't be fetched from Google Cloud Storage." );
-            throw new GoogleCloudStorageException ( HttpStatus.INTERNAL_SERVER_ERROR, "Files couldn't be fetched from Google Cloud Storage." );
+            LOGGER.error ( FailureMessages.GCS_FETCH_FAILED );
+            throw new GoogleCloudStorageException ( HttpStatus.INTERNAL_SERVER_ERROR, FailureMessages.GCS_FETCH_FAILED );
         }
 
-        LOGGER.info ( "Files fetched successfully" );
+        LOGGER.info ( InfoMessages.GCS_FETCH_SUCCESS );
         blobs.forEach ( blob -> filenames.add ( blob.getName () ) );
 
         return filenames;
@@ -155,15 +158,15 @@ public class GoogleCloudStorageServiceImpl implements GoogleCloudStorageService 
     @Override
     public String uploadFile ( MultipartFile file, String filename, String contentType ) {
 
-        LOGGER.debug ( "Started file uploading process on Google Cloud Storage." );
+        LOGGER.debug ( InfoMessages.FILE_UPLOAD_STARTED );
 
         byte [] fileData;
 
         try {
             fileData = FileUtils.readFileToByteArray ( convertFile ( file ) );
         } catch ( IOException e ) {
-            LOGGER.debug ( "An error occurred while reading provided file. Error: {}", e.getMessage () );
-            throw new RuntimeException ( "An error occurred while reading provided file. Error: " + e.getMessage () );
+            LOGGER.debug ( FailureMessages.ERROR_READING_PROVIDED_FILE + Symbols.OPENING_CURLY_BRACE + Symbols.CLOSING_CURLY_BRACE, e.getMessage () );
+            throw new RuntimeException ( FailureMessages.ERROR_READING_PROVIDED_FILE + e.getMessage () );
         }
         final Bucket bucket = getStorage ().get ( gcsBucketId, Storage.BucketGetOption.fields () );
 
@@ -171,24 +174,27 @@ public class GoogleCloudStorageServiceImpl implements GoogleCloudStorageService 
         final Blob blob = bucket.create ( filename, fileData, contentType );
 
         if ( blob == null ) {
-            LOGGER.error ( "File upload failed on Google Cloud Storage." );
-            throw new GoogleCloudStorageException ( HttpStatus.INTERNAL_SERVER_ERROR, "File upload failed on Google Cloud Storage." );
+            LOGGER.error ( FailureMessages.GCS_UPLOAD_FAILED );
+            throw new GoogleCloudStorageException ( HttpStatus.INTERNAL_SERVER_ERROR, FailureMessages.GCS_UPLOAD_FAILED );
         }
 
-        LOGGER.info ( "File uploaded successfully to Google Cloud Storage." );
+        LOGGER.info ( InfoMessages.GCS_UPLOAD_SUCCESS );
         return blob.getMediaLink ();
     }
 
     @Override
     public Blob downloadFile ( String filename ) {
+
+        LOGGER.debug ( InfoMessages.FILE_DOWNLOAD_STARTED );
+
         BlobId blobId = BlobId.of ( gcsBucketId, gcsDirName + "/" + filename );
         Blob blob = getStorage().get(blobId);
         if ( blob == null ) {
-            LOGGER.error ( "File not found for provided filename: " + filename );
-            throw new GoogleCloudStorageException ( HttpStatus.BAD_REQUEST, "File not found for provided filename: " + filename );
+            LOGGER.error ( FailureMessages.NO_FILENAME_FOR_GIVEN_FILE + filename );
+            throw new GoogleCloudStorageException ( HttpStatus.BAD_REQUEST, FailureMessages.NO_FILENAME_FOR_GIVEN_FILE + filename );
         }
 
-        LOGGER.info ( "Successfully fetched file from Google Cloud Storage" );
+        LOGGER.info ( InfoMessages.GCS_FETCH_SUCCESS );
         return blob;
     }
 
@@ -196,10 +202,10 @@ public class GoogleCloudStorageServiceImpl implements GoogleCloudStorageService 
         File convertedFile = new File ( Objects.requireNonNull ( file.getOriginalFilename () ) );
         try ( FileOutputStream outputStream = new FileOutputStream ( convertedFile ) ){
             outputStream.write ( file.getBytes () );
-            LOGGER.debug ( "Converting Multipart file : {}", convertedFile.getName () );
+            LOGGER.debug (InfoMessages.CONVERTING_MULTIPART_FILE, convertedFile.getName () );
         } catch ( IOException e ) {
-            LOGGER.error ( "An error occurred while writing data to the file. Error: " + e.getMessage() );
-            throw new RuntimeException ( "An error occurred while writing data to the file. Error: " + e.getMessage() );
+            LOGGER.error ( FailureMessages.ERROR_WRITING_TO_FILE + e.getMessage() );
+            throw new RuntimeException ( FailureMessages.ERROR_WRITING_TO_FILE + e.getMessage() );
         }
         return convertedFile;
     }
@@ -215,8 +221,8 @@ public class GoogleCloudStorageServiceImpl implements GoogleCloudStorageService 
                 storage = options.getService();
             }
         } catch ( IOException e ) {
-            LOGGER.error ( "An error occurred while reading the Google Cloud Storage Configurations file. Please check if the file exists and is accessible. Error: " + e.getMessage() );
-            throw new GoogleCloudStorageException ( HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while reading the Google Cloud Storage Configurations file. Please check if the file exists and is accessible. Error: " + e.getMessage() );
+            LOGGER.error ( FailureMessages.ERROR_READING_GCS_CONFIGURATION_FILE + e.getMessage() );
+            throw new GoogleCloudStorageException ( HttpStatus.INTERNAL_SERVER_ERROR, FailureMessages.ERROR_READING_GCS_CONFIGURATION_FILE + e.getMessage() );
         }
         return storage;
     }

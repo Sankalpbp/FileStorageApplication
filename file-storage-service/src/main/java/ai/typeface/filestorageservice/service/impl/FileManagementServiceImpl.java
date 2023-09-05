@@ -1,5 +1,9 @@
 package ai.typeface.filestorageservice.service.impl;
 
+import ai.typeface.filestorageservice.constants.ApiConstants;
+import ai.typeface.filestorageservice.constants.FailureMessages;
+import ai.typeface.filestorageservice.constants.InfoMessages;
+import ai.typeface.filestorageservice.constants.Symbols;
 import ai.typeface.filestorageservice.dtos.FileMetadataDTO;
 import ai.typeface.filestorageservice.dtos.FileMetadataPageResponse;
 import ai.typeface.filestorageservice.entity.FileMetadata;
@@ -60,8 +64,8 @@ public class FileManagementServiceImpl implements FileManagementService {
         }
 
         if ( fileURL == null || fileURL.isBlank () ) {
-            LOGGER.error ( "An error occurred while saving the file in Google Cloud Storage." );
-            throw new GoogleCloudStorageException ( HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while saving the file in Google Cloud Storage." );
+            LOGGER.error ( FailureMessages.ERROR_SAVING_METADATA );
+            throw new GoogleCloudStorageException ( HttpStatus.INTERNAL_SERVER_ERROR, FailureMessages.ERROR_SAVING_METADATA );
         }
 
         metadataDTO.setFileURL ( fileURL );
@@ -78,8 +82,8 @@ public class FileManagementServiceImpl implements FileManagementService {
         String fileURL = cloudStorageService.updateFile ( file, metadata.getFilename (), contentType );
 
         if ( fileURL == null || fileURL.isBlank () ) {
-            LOGGER.error ( "An error occurred while saving the file in Google Cloud Storage." );
-            throw new GoogleCloudStorageException ( HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while saving the file in Google Cloud Storage." );
+            LOGGER.error ( FailureMessages.GCS_UPLOAD_FAILED );
+            throw new GoogleCloudStorageException ( HttpStatus.INTERNAL_SERVER_ERROR, FailureMessages.ERROR_SAVING_METADATA );
         }
 
         metadata.setFileURL ( fileURL );
@@ -91,8 +95,8 @@ public class FileManagementServiceImpl implements FileManagementService {
                                                                                                         fileURL,
                                                                                                         metadata.getCreatedAt() ) );
         } catch ( IOException e ) {
-            LOGGER.error ( "An error occurred while saving the metadata to the database" + e.getMessage () );
-            throw new RuntimeException ( "An error occurred while saving the metadata to the database" + e.getMessage () );
+            LOGGER.error ( FailureMessages.ERROR_SAVING_METADATA + e.getMessage () );
+            throw new RuntimeException ( FailureMessages.ERROR_SAVING_METADATA + e.getMessage () );
         }
     }
 
@@ -132,11 +136,11 @@ public class FileManagementServiceImpl implements FileManagementService {
         fileURL = cloudStorageService.uploadFile( file, originalFileName, CloudStorageUtil.getContentType ( originalFileName ) );
 
         if ( fileURL == null || fileURL.isBlank () ) {
-            LOGGER.error ( "An error occurred while saving the file in Google Cloud Storage." );
-            throw new GoogleCloudStorageException ( HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while saving the file in Google Cloud Storage." );
+            LOGGER.error ( FailureMessages.ERROR_SAVING_METADATA );
+            throw new GoogleCloudStorageException ( HttpStatus.INTERNAL_SERVER_ERROR, FailureMessages.ERROR_SAVING_METADATA );
         }
 
-        LOGGER.info ( "File uploaded successfully, file name: {} and url: {}", originalFileName, fileURL );
+        LOGGER.info ( getLoggerMessage (), originalFileName, fileURL );
 
         // Storing metadata in MySQL Database
 
@@ -148,8 +152,8 @@ public class FileManagementServiceImpl implements FileManagementService {
                                                                                            fileURL));
             return savedMetadata.getUniqueIdentifier ();
         } catch ( IOException e) {
-            LOGGER.error ( "An error occurred while saving the metadata to the database" + e.getMessage () );
-            throw new RuntimeException ( "An error occurred while saving the metadata to the database" + e.getMessage () );
+            LOGGER.error ( FailureMessages.ERROR_SAVING_METADATA + e.getMessage () );
+            throw new RuntimeException ( FailureMessages.ERROR_SAVING_METADATA + e.getMessage () );
         }
 
     }
@@ -157,6 +161,13 @@ public class FileManagementServiceImpl implements FileManagementService {
     private String getFilenameFromMetadata ( UUID fileIdentifier ) {
         FileMetadataDTO metadata = fileMetadataService.findByUniqueIdentifier ( fileIdentifier );
         return metadata.getFilename();
+    }
+
+    private String getLoggerMessage ( ) {
+        return String.format ( "%s, %s: {} %s %s: {}", InfoMessages.GCS_UPLOAD_SUCCESS,
+                                                       ApiConstants.FILE_NAME,
+                                                       ApiConstants.AND,
+                                                       ApiConstants.URL );
     }
 
 }

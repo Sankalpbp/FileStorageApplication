@@ -1,5 +1,6 @@
 package ai.typeface.filestorageservice.util;
 
+import ai.typeface.filestorageservice.constants.FailureMessages;
 import ai.typeface.filestorageservice.constants.Symbols;
 import ai.typeface.filestorageservice.constants.ValidationErrorMessages;
 import ai.typeface.filestorageservice.exception.FileMetadataValidationException;
@@ -43,8 +44,8 @@ public final class CloudStorageUtil {
             Path path = new File( originalFileName ).toPath ();
             return Files.probeContentType ( path );
         } catch ( IOException e ) {
-            LOGGER.error ( ValidationErrorMessages.ERROR_READING_CONTENT_TYPE );
-            throw new RuntimeException ( ValidationErrorMessages.ERROR_READING_CONTENT_TYPE );
+            LOGGER.error ( FailureMessages.ERROR_READING_CONTENT_TYPE );
+            throw new RuntimeException ( FailureMessages.ERROR_READING_CONTENT_TYPE );
         }
     }
 }

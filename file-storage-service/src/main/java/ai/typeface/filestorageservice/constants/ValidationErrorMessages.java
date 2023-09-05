@@ -27,6 +27,5 @@ public final class ValidationErrorMessages {
 
     public static final String MALFORMED_FILENAME = "An error occurred while reading the file. Malformed filename. Should be of type: name.type";
 
-    public static final String ERROR_READING_CONTENT_TYPE = "An error occurred while reading the content type of the provided file to upload / update.";
 
 }
