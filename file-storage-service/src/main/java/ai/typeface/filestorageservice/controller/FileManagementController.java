@@ -22,9 +22,7 @@ import java.util.UUID;
 public class FileManagementController {
 
     /*
-    TODO:
-        1. Update all methods to return ResponseEntity<>
-        2. Handle all the incoming arguments by the client ( validate the arguments )
+        TODO: Handle all the incoming arguments by the client ( validate the arguments )
     */
 
     private static final Logger LOGGER = LoggerFactory.getLogger ( FileManagementController.class );
@@ -44,7 +42,7 @@ public class FileManagementController {
         LOGGER.debug ( "Called files/upload API end point" );
         try {
             if (file.isEmpty()) {
-                /* TODO: Throw a relevant exception */
+                LOGGER.error ( "File provided is empty" );
                 throw new RuntimeException ( "File provided is empty" );
             }
             return ResponseEntity.ok ( service.upload(file) );
@@ -66,7 +64,7 @@ public class FileManagementController {
                 throw new RuntimeException ( "Both file and metadata cannot be null together" );
             }
             if ( metadata == null && file.isEmpty () ) {
-                /* TODO: Throw a relevant exception */
+                LOGGER.error ( "If file metadata provided in the request body is null, file must not be empty!" );
                 throw new RuntimeException ( "No file found" );
             }
 
@@ -87,7 +85,7 @@ public class FileManagementController {
         try {
             return ResponseEntity.ok ( service.delete ( fileIdentifier ) );
         } catch ( Exception e ) {
-            LOGGER.error ( "An error occurred while fetching the file corresponding to fileIdentifier: {}.", fileIdentifier );
+            LOGGER.error ( "An error occurred while deleting the file corresponding to fileIdentifier: {}.", fileIdentifier );
             return ResponseEntity.badRequest ().build ();
         }
     }

@@ -2,9 +2,9 @@ package ai.typeface.filestorageservice.service.impl;
 
 import ai.typeface.filestorageservice.dtos.FileMetadataDTO;
 import ai.typeface.filestorageservice.entity.FileMetadata;
+import ai.typeface.filestorageservice.exception.ResourceNotFoundException;
 import ai.typeface.filestorageservice.repository.FileMetadataRepository;
 import ai.typeface.filestorageservice.service.FileMetadataService;
-import ai.typeface.filestorageservice.util.FileMetadataUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -37,10 +37,14 @@ public class FileMetadataServiceImpl implements FileMetadataService {
     @Override
     public FileMetadataDTO findByUniqueIdentifier ( UUID uniqueIdentifier ) {
         FileMetadata metadata = repository.findById ( uniqueIdentifier )
-                                          .orElse ( null );
-        return ( metadata == null ) ? null : entityToDTO ( metadata );
+                                          .orElseThrow ( () -> new ResourceNotFoundException ( "FileMetadata",
+                                                                                               "uniqueIdentifier",
+                                                                                               uniqueIdentifier.toString () )
+                                          );
+        return entityToDTO ( metadata );
     }
 
+    /* TODO: Add pagination to get all files */
     @Override
     public List<FileMetadataDTO> getAll ( ) {
         List<FileMetadata> metadataList = repository.findAll ();
@@ -52,8 +56,12 @@ public class FileMetadataServiceImpl implements FileMetadataService {
     @Override
     public String deleteByFilename ( String filename ) {
         int numberOfRowsDeleted = repository.deleteByFilename ( filename );
-        return ( numberOfRowsDeleted > 0 ) ? "File Metadata Deleted Successfully!"
-                                           : "File Delete operation failed!";
+        if ( numberOfRowsDeleted > 0 ) {
+            return "File Metadata Deleted Successfully!";
+        } else {
+            LOGGER.error ( "File Delete operation failed!" );
+            throw new RuntimeException ( "File Delete operation failed!" );
+        }
     }
 
     @Override
@@ -64,12 +72,9 @@ public class FileMetadataServiceImpl implements FileMetadataService {
 
     public FileMetadataDTO updateFileMetadata ( FileMetadataDTO metadata, UUID fileIdentifier ) {
         FileMetadata existingMetadata = repository.findById ( fileIdentifier )
-                                                  .orElse ( null );
-
-        /* TODO: To suppress NPE warnings - think about removing it */
-        if ( existingMetadata == null ) {
-            return null;
-        }
+                                                  .orElseThrow ( () -> new ResourceNotFoundException ( "FileMetadata",
+                                                                                                       "uniqueIdentifier",
+                                                                                                       fileIdentifier.toString () ) );
 
         if ( metadata.getFilename () != null ) {
             existingMetadata.setFilename ( metadata.getFilename ().split ( "\\." ) [ 0 ] + "." + existingMetadata.getFileType() );
@@ -77,7 +82,6 @@ public class FileMetadataServiceImpl implements FileMetadataService {
         if ( metadata.getFileURL () != null ) {
             existingMetadata.setFileURL ( metadata.getFileURL () );
         }
-        /* TODO: Handle these scenarios where file type is extracted out of the file */
 
         existingMetadata.setLastModifiedAt ( new Date () );
 

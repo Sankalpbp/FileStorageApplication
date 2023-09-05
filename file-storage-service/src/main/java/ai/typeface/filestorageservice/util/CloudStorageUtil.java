@@ -16,16 +16,20 @@ public final class CloudStorageUtil {
     public static String checkAndReturnOriginalFileName ( MultipartFile file ) {
         String originalFileName = file.getOriginalFilename();
         if ( originalFileName == null ) {
-            /* TODO: Throw a relevant exception */
-            LOGGER.error ( "filename is empty" );
-            return "";
+            LOGGER.error ( "An error occurred while reading the file name from the provided file to upload / update: " );
+            throw new RuntimeException ( "An error occurred while reading the file name from the provided file to upload / update." );
         }
         return originalFileName;
     }
 
     /* TODO: Throw a custom exception from here */
-    public static String getContentType ( String originalFileName ) throws IOException {
-        Path path = new File( originalFileName ).toPath ();
-        return Files.probeContentType ( path );
+    public static String getContentType ( String originalFileName ) {
+        try {
+            Path path = new File( originalFileName ).toPath ();
+            return Files.probeContentType ( path );
+        } catch ( IOException e ) {
+            LOGGER.error ( "An error occurred while reading the content type of the provided file to upload / update." );
+            throw new RuntimeException ( "An error occurred while reading the content type of the provided file to upload / update." );
+        }
     }
 }
