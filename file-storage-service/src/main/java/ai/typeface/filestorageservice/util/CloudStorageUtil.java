@@ -1,5 +1,7 @@
 package ai.typeface.filestorageservice.util;
 
+import ai.typeface.filestorageservice.constants.Symbols;
+import ai.typeface.filestorageservice.constants.ValidationErrorMessages;
 import ai.typeface.filestorageservice.exception.FileMetadataValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,32 +21,30 @@ public final class CloudStorageUtil {
     public static String checkAndReturnOriginalFileName ( MultipartFile file ) {
         String originalFileName = file.getOriginalFilename();
         if ( originalFileName == null ) {
-            LOGGER.error ( "An error occurred while reading the file name from the provided file to upload / update: " );
-            throw new RuntimeException ( "An error occurred while reading the file name from the provided file to upload / update." );
+            LOGGER.error (ValidationErrorMessages.ERROR_READING_FILE);
+            throw new RuntimeException ( ValidationErrorMessages.ERROR_READING_FILE );
         }
 
-        String [] partsOfFileName = originalFileName.split ( "\\." );
+        String [] partsOfFileName = originalFileName.split (Symbols.BACKSLASH + Symbols.PERIOD);
         int numberOfStrings = ( int ) Arrays.stream ( partsOfFileName )
                                             .filter ( s -> !s.isBlank () )
                                             .count ();
 
         if ( numberOfStrings < 2 || ( partsOfFileName [ 0 ].isBlank () || partsOfFileName [ partsOfFileName.length - 1 ].isBlank() ) ) {
-            LOGGER.error ( "An error occurred while reading the file. Malformed filename. Should be of type: name.type" );
-            throw new FileMetadataValidationException ( HttpStatus.BAD_REQUEST,
-                                    "An error occurred while reading the file. Malformed filename" );
+            LOGGER.error ( ValidationErrorMessages.MALFORMED_FILENAME );
+            throw new FileMetadataValidationException ( HttpStatus.BAD_REQUEST, ValidationErrorMessages.MALFORMED_FILENAME );
         }
 
         return partsOfFileName [ partsOfFileName.length - 1 ];
     }
 
-    /* TODO: Throw a custom exception from here */
     public static String getContentType ( String originalFileName ) {
         try {
             Path path = new File( originalFileName ).toPath ();
             return Files.probeContentType ( path );
         } catch ( IOException e ) {
-            LOGGER.error ( "An error occurred while reading the content type of the provided file to upload / update." );
-            throw new RuntimeException ( "An error occurred while reading the content type of the provided file to upload / update." );
+            LOGGER.error ( ValidationErrorMessages.ERROR_READING_CONTENT_TYPE );
+            throw new RuntimeException ( ValidationErrorMessages.ERROR_READING_CONTENT_TYPE );
         }
     }
 }

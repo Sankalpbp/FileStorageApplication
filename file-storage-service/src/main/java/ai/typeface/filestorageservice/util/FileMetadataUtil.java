@@ -59,39 +59,13 @@ public final class FileMetadataUtil {
                                                                     FileMetadataDTO existingMetadata
                                                                     ) {
 
-        if ( metadata.getSize () != null && !existingMetadata.getSize ().equals ( metadata.getSize () ) ) {
-            LOGGER.error ( getLoggerMessage ( ValidationErrorMessages.SIZE ), existingMetadata.getSize (), metadata.getSize () );
-            throw new FileMetadataValidationException ( HttpStatus.BAD_REQUEST,
-                                                        getExceptionMessage ( ValidationErrorMessages.SIZE,
-                                                                                existingMetadata.getSize ().toString (),
-                                                                                metadata.getSize ().toString () ) );
-        }
-
-        if ( metadata.getFileURL () != null && !existingMetadata.getFileURL().equals ( metadata.getFileURL () ) ) {
-            LOGGER.error ( getLoggerMessage ( ValidationErrorMessages.FILE_URL ), existingMetadata.getFileURL (), metadata.getFileURL () );
-            throw new FileMetadataValidationException ( HttpStatus.BAD_REQUEST,
-                                                        getExceptionMessage ( ValidationErrorMessages.FILE_URL,
-                                                                                existingMetadata.getFileURL(),
-                                                                                metadata.getFileURL() ) );
-        }
-
-        if ( metadata.getFileType () != null && !existingMetadata.getFileType().equals ( metadata.getFileType() ) ) {
-            LOGGER.error ( getLoggerMessage ( ValidationErrorMessages.FILE_TYPE ), existingMetadata.getFileType (), metadata.getFileType () );
-            throw new FileMetadataValidationException ( HttpStatus.BAD_REQUEST,
-                                                        getExceptionMessage ( ValidationErrorMessages.FILE_URL,
-                                                                                existingMetadata.getFileType(),
-                                                                                metadata.getFileType() ) );
-        }
+        validateField(ValidationErrorMessages.SIZE, existingMetadata.getSize().toString (), metadata.getSize().toString (), ValidationErrorMessages.SIZE);
+        validateField(ValidationErrorMessages.FILE_URL, existingMetadata.getFileURL(), metadata.getFileURL(), ValidationErrorMessages.FILE_URL);
+        validateField(ValidationErrorMessages.FILE_TYPE, existingMetadata.getFileType(), metadata.getFileType(), ValidationErrorMessages.FILE_TYPE);
 
         if ( metadata.getFilename () != null ) {
             String fileType = metadata.getFilename ().split ( Symbols.BACKSLASH + Symbols.PERIOD ) [ 1 ];
-            if ( !existingMetadata.getFileType ().equals ( fileType ) ) {
-                LOGGER.error ( getLoggerMessage ( ValidationErrorMessages.FILE_TYPE ), existingMetadata.getFileType(), metadata.getFileType() );
-                throw new FileMetadataValidationException ( HttpStatus.BAD_REQUEST,
-                                                            getExceptionMessage ( ValidationErrorMessages.FILE_TYPE,
-                                                                                    existingMetadata.getFileType(),
-                                                                                    metadata.getFileType() ) );
-            }
+            validateField(ValidationErrorMessages.FILE_TYPE, existingMetadata.getFileType(), fileType, ValidationErrorMessages.FILE_TYPE);
         }
 
     }
@@ -115,6 +89,14 @@ public final class FileMetadataUtil {
                                                               Symbols.COMMA,
                                                               ValidationErrorMessages.NEW,
                                                               attribute );
+    }
+
+    private static void validateField(String fieldName, String existingValue, String newValue, String errorMessage) {
+        if (newValue != null && !existingValue.equals(newValue)) {
+            LOGGER.error(getLoggerMessage(errorMessage), existingValue, newValue);
+            throw new FileMetadataValidationException(HttpStatus.BAD_REQUEST,
+                    getExceptionMessage(errorMessage, existingValue, newValue));
+        }
     }
 
 }

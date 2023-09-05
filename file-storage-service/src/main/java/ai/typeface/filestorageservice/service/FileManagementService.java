@@ -1,5 +1,6 @@
 package ai.typeface.filestorageservice.service;
 
+import ai.typeface.filestorageservice.constants.ApiConstants;
 import ai.typeface.filestorageservice.dtos.FileMetadataDTO;
 import ai.typeface.filestorageservice.dtos.FileMetadataPageResponse;
 import com.google.cloud.storage.Blob;
@@ -7,7 +8,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface FileManagementService {
@@ -26,12 +26,13 @@ public interface FileManagementService {
 
     default HttpHeaders getHttpHeaders (String contentType, String filename ) {
         if (contentType == null) {
-            contentType = "application/octet-stream";
+            contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
         }
 
         org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-        headers.add(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename);
+        headers.add(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, ApiConstants.ATTACHMENT_FILENAME_HEADER + filename );
         headers.setContentType(MediaType.parseMediaType(contentType));
         return headers;
     }
+
 }
