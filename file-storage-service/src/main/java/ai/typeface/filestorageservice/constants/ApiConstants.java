@@ -4,7 +4,7 @@ public final class ApiConstants {
 
     public static final String DEFAULT_PAGE_NUMBER = "0";
     public static final String DEFAULT_PAGE_SIZE = "5";
-    public static final String DEFAULT_SORT_BY_FIELD = "uniqueIdentifier";
+    public static final String DEFAULT_SORT_BY_FIELD = "createdAt";
     public static final String DEFAULT_SORT_DIRECTION = "asc";
 
     public static final String ATTACHMENT_FILENAME_HEADER = "attachment; filename=";
