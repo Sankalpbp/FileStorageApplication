@@ -6,8 +6,15 @@ const successMessage = document.querySelector ( '.success-message' );
 const infoMessage = document.querySelector ( '.info-message' );
 const fileListContainer = document.querySelector ( '.file-list-container' );
 const fileFetchFailedMessage = document.querySelector ( '.file-fetch-failed' );
+const previousButton = document.querySelector ( '.previous' );
+const nextButton = document.querySelector ( '.next' );
+const pageNumberContainer = document.querySelector ( '.page-number' );
 
-createList ( );
+const FIRST_PAGE = 0;
+
+let currentPage = 0;
+
+createList ( FIRST_PAGE, "5", "createdAt", "desc" );
 
 async function deleteListenerAction ( event ) {
     const button = event.target;
@@ -33,7 +40,7 @@ async function deleteListenerAction ( event ) {
             fileListContainer.removeChild ( fileListContainer.firstChild );
         }
 
-        createList ();
+        createList ( FIRST_PAGE, "5", "createdAt", "desc" );
 
     } catch ( error ) {
         console.error ( `Fetch error: ${error}` );
@@ -72,13 +79,13 @@ async function downloadListenerAction ( event ) {
 async function updateFileListenerAction ( event ) {
 }
 
-uploadButton.addEventListener ( 'click', event => {
+uploadButton.addEventListener ( 'click', async event => {
 
     const fileInput = document.querySelector ( '.fileInput' );
 
     if ( fileInput.files.length == 0 ) {
         errorMessage.textContent = 'Please select a file!';
-        errorMessage.style.color = 'text-danger';
+        errorMessage.classList = 'text-danger';
         return;
     } else {
         errorMessage.textContent = '';
@@ -87,10 +94,28 @@ uploadButton.addEventListener ( 'click', event => {
     const formData = new FormData ();
     formData.append ( 'file', fileInput.files [ 0 ] );
 
-    uploadFile ( formData );
+    await uploadFile ( formData );
+    while ( fileListContainer.firstChild ) {
+        fileListContainer.removeChild ( fileListContainer.firstChild );
+    }
+    await createList ( FIRST_PAGE, "5", "createdAt", "desc" );
 });
 
+nextButton.addEventListener ( 'click', event => {
+    while ( fileListContainer.firstChild ) {
+        fileListContainer.removeChild ( fileListContainer.firstChild );
+    }
+    ++currentPage;
+    createList ( currentPage, "5", "createdAt", "desc" );
+});
 
+previousButton.addEventListener ( 'click', event => {
+    while ( fileListContainer.firstChild ) {
+        fileListContainer.removeChild ( fileListContainer.firstChild );
+    }
+    --currentPage;
+    createList ( currentPage, '5', 'createdAt', 'desc' );
+});
 
 async function uploadFile(formData) {
 
@@ -157,24 +182,34 @@ function createFileListItem ( filename, uniqueIdentifier ) {
     return row;
 }
 
-async function createList ( ) {
-    const apiUrl = 'http://localhost:8081/files';
+async function createList ( pageNumber, pageSize, sortBy, sortDir ) {
+    const apiUrl = `http://localhost:8081/files?pageNumber=${pageNumber}&pageSize=${pageSize}&sortBy=${sortBy}&sortDir=${sortDir}`;
+
+
 
     let apiResponse = null;
     try {
         const response = await fetch ( apiUrl );
 
-        if ( response.status !== 200 ) {
+        if ( response.status === 200 ) {
+            apiResponse = await response.json ();
+        } else if ( response.status === 204 ) {
+            fileFetchFailedMessage.textContent = 'No files found';
+            return;
+        } else {
             fileFetchFailedMessage.textContent = 'Fetching files from server failed!';
             throw new Error ( `HTTP error! Status: ${response.status}` );
-        } else {
-            fileFetchFailedMessage.textContent = '';
         }
+        fileFetchFailedMessage.textContent = '';
 
-        apiResponse = await response.json ();
     } catch ( error ) {
         console.error ( `Fetch error: ${error}` );
     }
+
+    pageNumberContainer.textContent = apiResponse.pageNumber + 1;
+
+    previousButton.disabled = ( apiResponse.pageNumber === 0 );
+    nextButton.disabled = ( apiResponse.last );
 
     apiResponse.content.forEach ( file => {
         fileListContainer.appendChild ( createFileListItem ( file.filename, file.uniqueIdentifier ) );
@@ -182,4 +217,11 @@ async function createList ( ) {
         updateBox.classList = 'row mt-2 update-box';
         fileListContainer.appendChild ( updateBox );
     });
+
+    setTimeout ( () => {
+        errorMessage.textContent = '';
+        successMessage.textContent = '';
+        infoMessage.textContent = '';
+        fileFetchFailedMessage.textContent = '';
+    }, 2000 );
 }

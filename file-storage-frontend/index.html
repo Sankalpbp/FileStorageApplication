@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
     <link href="./style.css" rel="stylesheet">
-    <title>Sum in Array</title>
+    <title>File Storage Application</title>
 </head>
 <body>
     <div class="container-fluid">
@@ -30,7 +30,11 @@
         </div>
 
         <div class="row mt-5">
-            <div class="h4">List of Available files</div>
+            <div class="h4 col-4">List of Available files</div>
+            <button class="h5 col-1 btn btn-secondary previous">Previous</button>
+            <div class="h5 col-2 mt-2 text-center page-number"></div>
+            <button class="h5 col-1 btn btn-secondary next">Next</button>
+            <div class="h5 col-2"></div>
             <div class="h6 text-danger file-fetch-failed"></div>
             <div class="h6 info-message"></div>
         </div>
