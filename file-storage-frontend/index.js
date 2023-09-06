@@ -2,16 +2,21 @@
 
 const uploadButton = document.querySelector ( '.upload' );
 const errorMessage = document.querySelector ( '.error-message' );
+const successMessage = document.querySelector ( '.success-message' );
 const fileListContainer = document.querySelector ( '.file-list-container' );
+const fileFetchFailedMessage = document.querySelector ( '.file-fetch-failed' );
 
 createList ( );
 
+
+
 uploadButton.addEventListener ( 'click', event => {
+
     const fileInput = document.querySelector ( '.fileInput' );
 
     if ( fileInput.files.length == 0 ) {
         errorMessage.textContent = 'Please select a file!';
-        errorMessage.style.color = '#ff0000';
+        errorMessage.style.color = 'text-danger';
         return;
     } else {
         errorMessage.textContent = '';
@@ -22,25 +27,6 @@ uploadButton.addEventListener ( 'click', event => {
 
     uploadFile ( formData );
 });
-
-
-/*
-
-const downloadLink = document.getElementById("downloadLink");
-
-downloadLink.addEventListener("click", function (event) {
-    event.preventDefault();
-
-    const fileName = document.getElementById("metadataDownloadInput").value;
-    if (!fileName) {
-        alert("Please provide the file name");
-        return;
-    }
-
-    downloadFile(fileName);
-});
-
-*/
 
 function downloadFile(fileName) {
     const anchor = document.createElement("a");
@@ -53,60 +39,50 @@ function downloadFile(fileName) {
 }
 
 async function uploadFile(formData) {
-    /*
-    fetch("http://localhost:8081/files/upload", {
-        method: "POST",
-        body: formData
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error("Network response was not ok");
-        }
-        return response.json(); 
-    })
-    .then(data => {
-        console.log("Response from server:", data);
-    })
-    .catch(error => {
-        console.error("Error:", error);
-    });
-    */
 
     try {
         const response = await fetch('http://localhost:8081/files/upload', {
             method: 'POST',
             body: formData
         });
+
+        const data = await response.json();
     
         if ( response.status !== 201 ) {
-            throw new Error('Network response was not ok');
+            errorMessage.textContent = `Upload failed!\n${data.message}`;
+            errorMessage.style.color = 'text-danger';
+            return;
+        } else {
+            errorMessage.textContent = '';
         }
     
-        const data = await response.json();
+        successMessage.textContent = `Uploaded file has been saved successfully!`;
+        successMessage.classList = 'text-success';
         console.log('Response from server:', data);
     } catch (error) {
         console.error('Error:', error);
     }
 }
 
-function createFileListItem ( filename ) {
+function createFileListItem ( filename, uniqueIdentifier ) {
     const row = document.createElement ( 'div' );
     row.classList = 'row mt-2';
+    row.uniqueIdentifier = uniqueIdentifier;
 
     const filenameDiv = document.createElement ( 'div' );
     filenameDiv.classList = 'col-5 m-1';
     filenameDiv.textContent = filename;
 
     const downloadButton = document.createElement ( 'div' );
-    downloadButton.classList = 'col-1 m-1 btn btn-outline-info';
+    downloadButton.classList = 'col-1 m-1 btn btn-outline-info download-button';
     downloadButton.textContent = 'Download';
 
     const updateButton = document.createElement ( 'div' );
-    updateButton.classList = 'col-1 m-1 btn btn-outline-success';
+    updateButton.classList = 'col-1 m-1 btn btn-outline-success update-button';
     updateButton.textContent = 'Update';
 
     const deleteButton = document.createElement ( 'div' );
-    deleteButton.classList = 'col-1 m-1 btn btn-outline-danger';
+    deleteButton.classList = 'col-1 m-1 btn btn-outline-danger delete-button';
     deleteButton.textContent = 'Delete';
 
     row.appendChild ( filenameDiv );
@@ -125,7 +101,10 @@ async function createList ( ) {
         const response = await fetch ( apiUrl );
 
         if ( response.status !== 200 ) {
+            fileFetchFailedMessage.textContent = 'Fetching files from server failed!';
             throw new Error ( `HTTP error! Status: ${response.status}` );
+        } else {
+            fileFetchFailedMessage.textContent = '';
         }
 
         apiResponse = await response.json ();
@@ -134,6 +113,6 @@ async function createList ( ) {
     }
 
     apiResponse.content.forEach ( file => {
-        fileListContainer.appendChild ( createFileListItem ( file.filename ) );
+        fileListContainer.appendChild ( createFileListItem ( file.filename, file.uniqueIdentifier ) );
     });
 }
