@@ -59,7 +59,9 @@ public final class FileMetadataUtil {
                                                                     FileMetadataDTO existingMetadata
                                                                     ) {
 
-        validateField(ValidationErrorMessages.SIZE, existingMetadata.getSize().toString (), metadata.getSize().toString (), ValidationErrorMessages.SIZE);
+        if ( metadata.getSize () != null ) {
+            validateField(ValidationErrorMessages.SIZE, existingMetadata.getSize().toString (), metadata.getSize().toString (), ValidationErrorMessages.SIZE);
+        }
         validateField(ValidationErrorMessages.FILE_URL, existingMetadata.getFileURL(), metadata.getFileURL(), ValidationErrorMessages.FILE_URL);
         validateField(ValidationErrorMessages.FILE_TYPE, existingMetadata.getFileType(), metadata.getFileType(), ValidationErrorMessages.FILE_TYPE);
 
