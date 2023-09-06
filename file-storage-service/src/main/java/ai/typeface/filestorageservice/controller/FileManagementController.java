@@ -53,25 +53,32 @@ public class FileManagementController {
         return ResponseEntity.status ( HttpStatus.CREATED ).body ( service.upload ( file ) );
     }
 
-    @PutMapping ( "/{fileIdentifier}" )
-    public ResponseEntity<FileMetadataDTO> updateFile ( @RequestParam ( value = "file", required = false ) MultipartFile file,
-                                                        @PathVariable ( "fileIdentifier" ) UUID fileIdentifier,
-                                                        @RequestBody ( required = false ) FileMetadataDTO metadata ) {
+    @PutMapping ( "/file/{fileIdentifier}" )
+    public ResponseEntity<FileMetadataDTO> updateFile ( @RequestParam ( "file" ) MultipartFile file,
+                                                        @PathVariable ( "fileIdentifier" ) UUID fileIdentifier ) {
 
         LOGGER.debug ( ApiCalledMessages.UPDATE_API_CALLED );
 
-        if ( file == null && metadata == null ) {
-            throw new RuntimeException ( ValidationErrorMessages.FILE_AND_METADATA_NOT_NULL_TOGETHER );
-        }
-        if ( metadata == null && file.isEmpty () ) {
+        if ( file.isEmpty () ) {
             LOGGER.error ( ValidationErrorMessages.FILE_MUST_NOT_BE_EMPTY );
             throw new RuntimeException ( ValidationErrorMessages.EMPTY_FILE_ERROR );
         }
 
-        if ( metadata != null ) {
-            return ResponseEntity.ok ( service.updateMetadata ( metadata, fileIdentifier ) );
-        }
         return ResponseEntity.ok ( service.updateFileData ( file, fileIdentifier ) );
+    }
+
+    @PutMapping ( "/metadata/{fileIdentifier}" )
+    public ResponseEntity<FileMetadataDTO> updateFile ( @PathVariable ( "fileIdentifier" ) UUID fileIdentifier,
+                                                        @RequestBody FileMetadataDTO metadata ) {
+
+        LOGGER.debug ( ApiCalledMessages.UPDATE_API_CALLED );
+
+        if ( metadata == null ) {
+            LOGGER.error ( ValidationErrorMessages.FILE_MUST_NOT_BE_EMPTY );
+            throw new RuntimeException ( ValidationErrorMessages.EMPTY_FILE_ERROR );
+        }
+
+        return ResponseEntity.ok ( service.updateMetadata ( metadata, fileIdentifier ) );
     }
 
     @DeleteMapping ( "/{fileIdentifier}" )
