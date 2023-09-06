@@ -3,12 +3,74 @@
 const uploadButton = document.querySelector ( '.upload' );
 const errorMessage = document.querySelector ( '.error-message' );
 const successMessage = document.querySelector ( '.success-message' );
+const infoMessage = document.querySelector ( '.info-message' );
 const fileListContainer = document.querySelector ( '.file-list-container' );
 const fileFetchFailedMessage = document.querySelector ( '.file-fetch-failed' );
 
 createList ( );
 
+async function deleteListenerAction ( event ) {
+    const button = event.target;
+    const buttonRow = button.parentElement;
+    const uniqueIdentifier = buttonRow.uniqueIdentifier;
+    const apiUrl = `http://localhost:8081/files/${uniqueIdentifier}`;
 
+    try {
+        const response = await fetch ( apiUrl, {
+            method: 'DELETE'
+        });
+
+        if ( response.status != 200 ) {
+            infoMessage.textContent =  'File delete operation failed!';
+            infoMessage.classList = 'text-danger';
+            return;
+        } else {
+            infoMessage.textContent = 'File successfully deleted ';
+            infoMessage.classList = 'text-success';
+        }
+
+        while ( fileListContainer.firstChild ) {
+            fileListContainer.removeChild ( fileListContainer.firstChild );
+        }
+
+        createList ();
+
+    } catch ( error ) {
+        console.error ( `Fetch error: ${error}` );
+    }
+}
+
+async function downloadListenerAction ( event ) {
+    const button = event.target;
+    const buttonRow = button.parentElement;
+    const filename = buttonRow.filename;
+    const uniqueIdentifier = buttonRow.uniqueIdentifier;
+    const apiUrl = `http://localhost:8081/files/${uniqueIdentifier}`;
+
+    try {
+        const response = await fetch ( apiUrl );
+
+        if ( response.status !== 200 ) {
+            alert ( 'Download Failed!' );
+            return;
+        }
+
+        const blobData = await response.blob();
+
+        const anchor = document.createElement('a');
+        anchor.href = URL.createObjectURL(blobData);
+
+        anchor.download = filename;
+        anchor.click();
+        URL.revokeObjectURL(anchor.href);
+
+    } catch ( error ) {
+        console.error ( `Fetch error: ${error}` );
+    }
+}
+
+async function updateFileListenerAction ( event ) {
+}
 
 uploadButton.addEventListener ( 'click', event => {
 
@@ -28,20 +90,14 @@ uploadButton.addEventListener ( 'click', event => {
     uploadFile ( formData );
 });
 
-function downloadFile(fileName) {
-    const anchor = document.createElement("a");
-    anchor.href = `http://localhost:8081/files/download?filePath=${fileName}`;
-    anchor.style.display = 'none'; 
-    anchor.setAttribute("download", fileName);
-    document.body.appendChild(anchor);
-    anchor.click();
-    document.body.removeChild(anchor);
-}
+
 
 async function uploadFile(formData) {
 
+    const apiUrl = 'http://localhost:8081/files/upload';
+
     try {
-        const response = await fetch('http://localhost:8081/files/upload', {
+        const response = await fetch( apiUrl, {
             method: 'POST',
             body: formData
         });
@@ -66,28 +122,36 @@ async function uploadFile(formData) {
 
 function createFileListItem ( filename, uniqueIdentifier ) {
     const row = document.createElement ( 'div' );
-    row.classList = 'row mt-2';
+    row.classList = 'row mt-3';
     row.uniqueIdentifier = uniqueIdentifier;
+    row.filename = filename;
 
     const filenameDiv = document.createElement ( 'div' );
-    filenameDiv.classList = 'col-5 m-1';
+    filenameDiv.classList = 'col-4 m-1 mt-4';
     filenameDiv.textContent = filename;
 
     const downloadButton = document.createElement ( 'div' );
     downloadButton.classList = 'col-1 m-1 btn btn-outline-info download-button';
     downloadButton.textContent = 'Download';
+    downloadButton.addEventListener ( 'click', downloadListenerAction );
 
-    const updateButton = document.createElement ( 'div' );
-    updateButton.classList = 'col-1 m-1 btn btn-outline-success update-button';
-    updateButton.textContent = 'Update';
+    const updateFileButton = document.createElement ( 'div' );
+    updateFileButton.classList = 'col-1 m-1 btn btn-outline-success update-file-button';
+    updateFileButton.textContent = 'Update File';
+
+    const updateFileMetadataButton = document.createElement ( 'div' );
+    updateFileMetadataButton.classList = 'col-1 m-1 btn btn-outline-warning update-file-metadata-button';
+    updateFileMetadataButton.textContent = 'Update File Metadata';
 
     const deleteButton = document.createElement ( 'div' );
     deleteButton.classList = 'col-1 m-1 btn btn-outline-danger delete-button';
     deleteButton.textContent = 'Delete';
+    deleteButton.addEventListener ( 'click', deleteListenerAction );
 
     row.appendChild ( filenameDiv );
     row.appendChild ( downloadButton );
-    row.appendChild ( updateButton );
+    row.appendChild ( updateFileButton );
+    row.appendChild ( updateFileMetadataButton );
     row.appendChild ( deleteButton );
 
     return row;
@@ -114,5 +178,8 @@ async function createList ( ) {
 
     apiResponse.content.forEach ( file => {
         fileListContainer.appendChild ( createFileListItem ( file.filename, file.uniqueIdentifier ) );
+        const updateBox = document.createElement ( 'div' );
+        updateBox.classList = 'row mt-2 update-box';
+        fileListContainer.appendChild ( updateBox );
     });
 }
