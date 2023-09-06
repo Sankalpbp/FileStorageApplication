@@ -36,10 +36,6 @@ async function deleteListenerAction ( event ) {
             infoMessage.classList = 'text-success';
         }
 
-        while ( fileListContainer.firstChild ) {
-            fileListContainer.removeChild ( fileListContainer.firstChild );
-        }
-
         createList ( FIRST_PAGE, "5", "createdAt", "desc" );
 
     } catch ( error ) {
@@ -58,7 +54,7 @@ async function downloadListenerAction ( event ) {
         const response = await fetch ( apiUrl );
 
         if ( response.status !== 200 ) {
-            alert ( 'Download Failed!' );
+            errorMessage.textContent = 'Download Failed!';
             return;
         }
 
@@ -76,7 +72,140 @@ async function downloadListenerAction ( event ) {
     }
 }
 
-async function updateFileListenerAction ( event ) {
+async function updateFileData ( uniqueIdentifier ) {
+    const fileInput = document.querySelector ( `.fileDataUpdateInput-${uniqueIdentifier}` );
+    const updateBox = document.querySelector ( `.update-box-${uniqueIdentifier}` );
+
+    const errorDiv = document.createElement ( 'div' );
+    errorDiv.textContent = 'Please select a file!';
+    errorDiv.classList = `text-danger error-${uniqueIdentifier}`;
+
+    if ( fileInput.files.length == 0 ) {
+        updateBox.appendChild ( errorDiv );
+        removeMessage ( errorDiv );
+        return;
+    } else {
+        errorDiv.textContent = '';
+    }
+
+    const formData = new FormData ();
+    formData.append ( 'file', fileInput.files [ 0 ] );
+
+    await updateFile ( uniqueIdentifier, formData );
+    createList ( FIRST_PAGE, '5', 'createdAt', 'desc' );
+}
+
+async function updateFileMetadata ( uniqueIdentifier, metadata ) {
+    const filename = metadata.filename;
+    const updateBox = document.querySelector ( `.update-box-${uniqueIdentifier}` );
+
+    const errorDiv = document.createElement ( 'div' );
+    errorDiv.textContent = 'Please provide an updated filename!';
+    errorDiv.classList = `text-danger error-${uniqueIdentifier}`;
+
+    if ( !filename ) {
+        updateBox.appendChild ( errorDiv );
+        removeMessage ( errorDiv );
+        return;
+    } else {
+        errorDiv.textContent = '';
+    }
+
+    await updateMetadata ( uniqueIdentifier, metadata );
+    createList ( currentPage, '5', 'createdAt', 'desc' );
+}
+
+function updateFileMetadataListenerAction ( event ) {
+    const button = event.target;
+    const buttonRow = button.parentElement;
+    const uniqueIdentifier = buttonRow.uniqueIdentifier;
+    const updateBox = document.querySelector ( `.update-box-${uniqueIdentifier}` );
+    updateBox.classList.add ( `file-metadata-update-${uniqueIdentifier}` );
+    
+    button.disabled = true;
+
+    const form = document.createElement ( 'div' );
+    form.classList = `form col-8 update-metadata-form file-metadata-update-${uniqueIdentifier}`;
+
+    const label = document.createElement ( 'label' );
+    label.classList = 'form-label';
+    label.textContent = 'Enter updated file name: ';
+
+    form.appendChild ( label );
+
+    const input = document.createElement ( 'input' );
+    input.classList = `form-control fileMetadataUpdateInput-${uniqueIdentifier}`;
+    input.type = 'text';
+
+    form.appendChild ( input );
+
+    const updateButton = document.createElement ( 'button' );
+    updateButton.classList = `btn btn-warning col-1 m-3 mb-0 file-metadata-update-${uniqueIdentifier}`;
+    updateButton.textContent = 'Update';
+    updateButton.addEventListener ( 'click', async event => {
+        await updateFileMetadata ( uniqueIdentifier, { filename: input.value } );
+    } );
+
+    const closeButton = document.createElement ( 'button' );
+    closeButton.classList = `btn btn-secondary col-1 m-3 mb-0 close-${uniqueIdentifier} file-metadata-update-${uniqueIdentifier}`;
+    closeButton.textContent = 'Close';
+    closeButton.addEventListener ( 'click', event => {
+        const childrenToRemove = updateBox.querySelectorAll ( `.file-metadata-update-${uniqueIdentifier}` );
+        Array.from ( childrenToRemove ).forEach ( child => {
+            updateBox.removeChild ( child );
+        });
+        button.disabled = false;
+    });
+    
+    updateBox.appendChild ( form );
+    updateBox.appendChild ( updateButton );
+    updateBox.appendChild ( closeButton );
+}
+
+function updateFileDataListenerAction ( event ) {
+    const button = event.target;
+    const buttonRow = button.parentElement;
+    const uniqueIdentifier = buttonRow.uniqueIdentifier;
+    const updateBox = document.querySelector ( `.update-box-${uniqueIdentifier}` );
+
+    button.disabled = true;
+
+    const form = document.createElement ( 'div' );
+    form.classList = `form col-8 update-file-form file-data-update-${uniqueIdentifier}`;
+
+    const label = document.createElement ( 'label' );
+    label.classList = 'form-label';
+    label.textContent = 'Click on Choose File button to browse files from the file system';
+
+    form.appendChild ( label );
+
+    const input = document.createElement ( 'input' );
+    input.classList = `form-control fileDataUpdateInput-${uniqueIdentifier}`;
+    input.type = 'file';
+
+    form.appendChild ( input );
+
+    const updateButton = document.createElement ( 'button' );
+    updateButton.classList = `btn btn-warning col-1 m-3 mb-0 file-data-update-${uniqueIdentifier}`;
+    updateButton.textContent = 'Update';
+    updateButton.addEventListener ( 'click', async event => {
+        await updateFileData ( uniqueIdentifier );
+    } );
+
+    const closeButton = document.createElement ( 'button' );
+    closeButton.classList = `btn btn-secondary col-1 m-3 mb-0 close-${uniqueIdentifier} file-data-update-${uniqueIdentifier}`;
+    closeButton.textContent = 'Close';
+    closeButton.addEventListener ( 'click', event => {
+        const childrenToRemove = updateBox.querySelectorAll ( `.file-data-update-${uniqueIdentifier}` );
+        Array.from ( childrenToRemove ).forEach ( child => {
+            updateBox.removeChild ( child );
+        });
+        button.disabled = false;
+    });
+    
+    updateBox.appendChild ( form );
+    updateBox.appendChild ( updateButton );
+    updateBox.appendChild ( closeButton );
 }
 
 uploadButton.addEventListener ( 'click', async event => {
@@ -95,27 +224,72 @@ uploadButton.addEventListener ( 'click', async event => {
     formData.append ( 'file', fileInput.files [ 0 ] );
 
     await uploadFile ( formData );
-    while ( fileListContainer.firstChild ) {
-        fileListContainer.removeChild ( fileListContainer.firstChild );
-    }
-    await createList ( FIRST_PAGE, "5", "createdAt", "desc" );
+    createList ( FIRST_PAGE, "5", "createdAt", "desc" );
 });
 
 nextButton.addEventListener ( 'click', event => {
-    while ( fileListContainer.firstChild ) {
-        fileListContainer.removeChild ( fileListContainer.firstChild );
-    }
     ++currentPage;
     createList ( currentPage, "5", "createdAt", "desc" );
 });
 
 previousButton.addEventListener ( 'click', event => {
-    while ( fileListContainer.firstChild ) {
-        fileListContainer.removeChild ( fileListContainer.firstChild );
-    }
     --currentPage;
     createList ( currentPage, '5', 'createdAt', 'desc' );
 });
+
+async function updateMetadata ( uniqueIdentifier, metadata ) {
+    const apiUrl = `http://localhost:8081/files/metadata/${uniqueIdentifier}`;
+
+    try {
+        const response = await fetch ( apiUrl, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify ( metadata )
+        });
+
+        const data = await response.json ();
+
+        if ( response.status != 200 ) {
+            const errorDiv = document.querySelector ( `.error-${uniqueIdentifier}` );
+            errorDiv.textContent = data.message;
+            removeMessage ( errorDiv );
+            return;
+        }
+
+        successMessage.textContent = 'File metadata has been saved successfully!';
+        successMessage.classList = 'text-success';
+        console.log('Response from server:', data);
+    } catch ( error ) {
+        console.error ( 'Error: ', error );
+    }
+}
+
+async function updateFile ( uniqueIdentifier, formData ) {
+    const apiUrl = `http://localhost:8081/files/file/${uniqueIdentifier}`;
+
+    try {
+        const response = await fetch ( apiUrl, {
+            method: 'PUT',
+            body: formData,
+        });
+
+        const data = await response.json ();
+
+        if ( response.status !== 200 ) {
+            const errorDiv = document.querySelector ( `.error-${uniqueIdentifier}` );
+            errorDiv.textContent = data.message;
+            removeMessage ( errorDiv );
+            return;
+        }
+        successMessage.textContent = `Updated file has been saved successfully!`;
+        successMessage.classList = 'text-success';
+        console.log('Response from server:', data);
+    } catch ( error ) {
+        console.error ( 'Error: ', error );
+    }
+}
 
 async function uploadFile(formData) {
 
@@ -155,27 +329,29 @@ function createFileListItem ( filename, uniqueIdentifier ) {
     filenameDiv.classList = 'col-4 m-1 mt-4';
     filenameDiv.textContent = filename;
 
-    const downloadButton = document.createElement ( 'div' );
+    const downloadButton = document.createElement ( 'button' );
     downloadButton.classList = 'col-1 m-1 btn btn-outline-info download-button';
     downloadButton.textContent = 'Download';
     downloadButton.addEventListener ( 'click', downloadListenerAction );
 
-    const updateFileButton = document.createElement ( 'div' );
-    updateFileButton.classList = 'col-1 m-1 btn btn-outline-success update-file-button';
-    updateFileButton.textContent = 'Update File';
+    const updateFileDataButton = document.createElement ( 'button' );
+    updateFileDataButton.classList = 'col-1 m-1 btn btn-outline-success update-file-button';
+    updateFileDataButton.textContent = 'Update File';
+    updateFileDataButton.addEventListener ( 'click', updateFileDataListenerAction );
 
-    const updateFileMetadataButton = document.createElement ( 'div' );
+    const updateFileMetadataButton = document.createElement ( 'button' );
     updateFileMetadataButton.classList = 'col-1 m-1 btn btn-outline-warning update-file-metadata-button';
     updateFileMetadataButton.textContent = 'Update File Metadata';
+    updateFileMetadataButton.addEventListener ( 'click', updateFileMetadataListenerAction );
 
-    const deleteButton = document.createElement ( 'div' );
+    const deleteButton = document.createElement ( 'button' );
     deleteButton.classList = 'col-1 m-1 btn btn-outline-danger delete-button';
     deleteButton.textContent = 'Delete';
     deleteButton.addEventListener ( 'click', deleteListenerAction );
 
     row.appendChild ( filenameDiv );
     row.appendChild ( downloadButton );
-    row.appendChild ( updateFileButton );
+    row.appendChild ( updateFileDataButton );
     row.appendChild ( updateFileMetadataButton );
     row.appendChild ( deleteButton );
 
@@ -183,9 +359,12 @@ function createFileListItem ( filename, uniqueIdentifier ) {
 }
 
 async function createList ( pageNumber, pageSize, sortBy, sortDir ) {
+
+    while ( fileListContainer.firstChild ) {
+        fileListContainer.removeChild ( fileListContainer.firstChild );
+    }
+
     const apiUrl = `http://localhost:8081/files?pageNumber=${pageNumber}&pageSize=${pageSize}&sortBy=${sortBy}&sortDir=${sortDir}`;
-
-
 
     let apiResponse = null;
     try {
@@ -214,14 +393,25 @@ async function createList ( pageNumber, pageSize, sortBy, sortDir ) {
     apiResponse.content.forEach ( file => {
         fileListContainer.appendChild ( createFileListItem ( file.filename, file.uniqueIdentifier ) );
         const updateBox = document.createElement ( 'div' );
-        updateBox.classList = 'row mt-2 update-box';
+        updateBox.classList = `row mt-2 mb-5 update-box-${file.uniqueIdentifier}`;
         fileListContainer.appendChild ( updateBox );
     });
 
+    removeMessages ();
+}
+
+function removeMessages ( ) {
+    removeMessage ( errorMessage );
+    removeMessage ( successMessage );
+    removeMessage ( infoMessage );
+    removeMessage ( fileFetchFailedMessage );
+}
+
+function removeMessage ( element ) {
+    if ( !element ) {
+        return;
+    }
     setTimeout ( () => {
-        errorMessage.textContent = '';
-        successMessage.textContent = '';
-        infoMessage.textContent = '';
-        fileFetchFailedMessage.textContent = '';
+        element.textContent = '';
     }, 2000 );
 }
