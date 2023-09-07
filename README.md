@@ -44,7 +44,7 @@ In most cases, MySQL runs on `3306`, so replace the `PORT_NUMBER` in the `spring
 3. This file contains the link to the DDL scripts which will be run at the startup of the application to make sure that the required database and tables are there to work on. This makes setting up easier without any extra effort. 
 
 ```
-file-storage-service/src/main/resources/db/ddl-scripts.sql
+file-storage-service/src/main/resources/schema.sql
 ```
 
 4. Open the `file-storage-frontend/` directory in the terminal.
