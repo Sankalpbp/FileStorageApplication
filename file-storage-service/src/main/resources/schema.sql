@@ -4,7 +4,7 @@ CREATE DATABASE IF NOT EXISTS file_metadata;
 USE file_metadata;
 
 CREATE TABLE IF NOT EXISTS metadata (
-    uniqueIdentifier UUID PRIMARY KEY,
+    uniqueIdentifier BINARY(16) PRIMARY KEY,
     filename VARCHAR(255) NOT NULL,
     createdAt TIMESTAMP NOT NULL,
     lastModifiedAt TIMESTAMP,
