@@ -244,19 +244,21 @@ function updateFileDataListenerAction ( event ) {
 uploadButton.addEventListener ( 'click', async event => {
 
     const fileInput = document.querySelector ( '.fileInput' );
+
+    if ( fileInput.files.length == 0 ) {
+        errorMessage.textContent = 'Please select a file!';
+        errorMessage.classList = 'text-danger';
+        removeMessage ( errorMessage );
+        return;
+    } else {
+        errorMessage.textContent = '';
+    }
+
     if ( ( fileInput.files [ 0 ].size / ( 1024 * 1024 ) ) > 50 ) {
         errorMessage.textContent = 'Please upload a file with size less than 50MB';
         errorMessage.classList = 'text-danger';
         removeMessage ( errorMessage );
         return;
-    }
-
-    if ( fileInput.files.length == 0 ) {
-        errorMessage.textContent = 'Please select a file!';
-        errorMessage.classList = 'text-danger';
-        return;
-    } else {
-        errorMessage.textContent = '';
     }
 
     const formData = new FormData ();
