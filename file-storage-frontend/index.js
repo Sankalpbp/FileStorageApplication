@@ -11,19 +11,45 @@ const nextButton = document.querySelector ( '.next' );
 const pageNumberContainer = document.querySelector ( '.page-number' );
 
 const FIRST_PAGE = 0;
+const PAGE_SIZE = 5;
+const SORT_BY_FIELD = 'createdAt';
+const SORT_BY_DIRECTION = 'desc';
+
+const HOSTNAME = 'localhost';
+const HTTP = 'http'
+const PORT = '8081';
+const FILES = 'files';
+const METADATA = 'metadata';
+const FILE = 'file';
+
+const URL_PREFIX = `${HTTP}://${HOSTNAME}:${PORT}/${FILES}`;
 
 let currentPage = 0;
 
-createList ( FIRST_PAGE, "5", "createdAt", "desc" );
+createList ( FIRST_PAGE, PAGE_SIZE, SORT_BY_FIELD, SORT_BY_DIRECTION );
+
+function url ( uniqueIdentifier, isMetadataBeingUpdated ) {
+    let apiUrl = URL_PREFIX;
+    if ( !uniqueIdentifier ) {
+        return apiUrl;
+    }
+    if ( isMetadataBeingUpdated !== undefined ) {
+        apiUrl += '/';
+        apiUrl += isMetadataBeingUpdated ? METADATA
+                                         : FILE;
+    }
+    apiUrl += '/' + uniqueIdentifier;
+    return apiUrl;
+}
 
 async function deleteListenerAction ( event ) {
     const button = event.target;
     const buttonRow = button.parentElement;
     const uniqueIdentifier = buttonRow.uniqueIdentifier;
-    const apiUrl = `http://localhost:8081/files/${uniqueIdentifier}`;
+    const DELETE_URL = url ( uniqueIdentifier );
 
     try {
-        const response = await fetch ( apiUrl, {
+        const response = await fetch ( DELETE_URL, {
             method: 'DELETE'
         });
 
@@ -36,7 +62,7 @@ async function deleteListenerAction ( event ) {
             infoMessage.classList = 'text-success';
         }
 
-        createList ( FIRST_PAGE, "5", "createdAt", "desc" );
+        createList ( FIRST_PAGE, PAGE_SIZE, SORT_BY_FIELD, SORT_BY_DIRECTION );
 
     } catch ( error ) {
         console.error ( `Fetch error: ${error}` );
@@ -48,10 +74,10 @@ async function downloadListenerAction ( event ) {
     const buttonRow = button.parentElement;
     const filename = buttonRow.filename;
     const uniqueIdentifier = buttonRow.uniqueIdentifier;
-    const apiUrl = `http://localhost:8081/files/${uniqueIdentifier}`;
+    const GET_URL = url ( uniqueIdentifier );
 
     try {
-        const response = await fetch ( apiUrl );
+        const response = await fetch ( GET_URL );
 
         if ( response.status !== 200 ) {
             errorMessage.textContent = 'Download Failed!';
@@ -92,7 +118,7 @@ async function updateFileData ( uniqueIdentifier ) {
     formData.append ( 'file', fileInput.files [ 0 ] );
 
     await updateFile ( uniqueIdentifier, formData );
-    createList ( FIRST_PAGE, '5', 'createdAt', 'desc' );
+    createList ( FIRST_PAGE, PAGE_SIZE, SORT_BY_FIELD, SORT_BY_DIRECTION );
 }
 
 async function updateFileMetadata ( uniqueIdentifier, metadata ) {
@@ -112,7 +138,7 @@ async function updateFileMetadata ( uniqueIdentifier, metadata ) {
     }
 
     await updateMetadata ( uniqueIdentifier, metadata );
-    createList ( currentPage, '5', 'createdAt', 'desc' );
+    createList ( currentPage, PAGE_SIZE, SORT_BY_FIELD, SORT_BY_DIRECTION );
 }
 
 function updateFileMetadataListenerAction ( event ) {
@@ -224,24 +250,24 @@ uploadButton.addEventListener ( 'click', async event => {
     formData.append ( 'file', fileInput.files [ 0 ] );
 
     await uploadFile ( formData );
-    createList ( FIRST_PAGE, "5", "createdAt", "desc" );
+    createList ( FIRST_PAGE, PAGE_SIZE, SORT_BY_FIELD, SORT_BY_DIRECTION );
 });
 
 nextButton.addEventListener ( 'click', event => {
     ++currentPage;
-    createList ( currentPage, "5", "createdAt", "desc" );
+    createList ( currentPage, PAGE_SIZE, SORT_BY_FIELD, SORT_BY_DIRECTION );
 });
 
 previousButton.addEventListener ( 'click', event => {
     --currentPage;
-    createList ( currentPage, '5', 'createdAt', 'desc' );
+    createList ( currentPage, PAGE_SIZE, SORT_BY_FIELD, SORT_BY_DIRECTION );
 });
 
 async function updateMetadata ( uniqueIdentifier, metadata ) {
-    const apiUrl = `http://localhost:8081/files/metadata/${uniqueIdentifier}`;
+    const PUT_URL = url ( uniqueIdentifier, true );
 
     try {
-        const response = await fetch ( apiUrl, {
+        const response = await fetch ( PUT_URL, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -267,10 +293,10 @@ async function updateMetadata ( uniqueIdentifier, metadata ) {
 }
 
 async function updateFile ( uniqueIdentifier, formData ) {
-    const apiUrl = `http://localhost:8081/files/file/${uniqueIdentifier}`;
+    const PUT_URL = url ( uniqueIdentifier, false );
 
     try {
-        const response = await fetch ( apiUrl, {
+        const response = await fetch ( PUT_URL, {
             method: 'PUT',
             body: formData,
         });
@@ -293,10 +319,10 @@ async function updateFile ( uniqueIdentifier, formData ) {
 
 async function uploadFile(formData) {
 
-    const apiUrl = 'http://localhost:8081/files/upload';
+    const POST_URL = `${url ()}/upload`;
 
     try {
-        const response = await fetch( apiUrl, {
+        const response = await fetch( POST_URL, {
             method: 'POST',
             body: formData
         });
@@ -364,11 +390,11 @@ async function createList ( pageNumber, pageSize, sortBy, sortDir ) {
         fileListContainer.removeChild ( fileListContainer.firstChild );
     }
 
-    const apiUrl = `http://localhost:8081/files?pageNumber=${pageNumber}&pageSize=${pageSize}&sortBy=${sortBy}&sortDir=${sortDir}`;
+    const GET_URL = `${url ( )}?pageNumber=${pageNumber}&pageSize=${pageSize}&sortBy=${sortBy}&sortDir=${sortDir}`;
 
     let apiResponse = null;
     try {
-        const response = await fetch ( apiUrl );
+        const response = await fetch ( GET_URL );
 
         if ( response.status === 200 ) {
             apiResponse = await response.json ();
