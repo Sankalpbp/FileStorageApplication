@@ -8,6 +8,8 @@ public final class ValidationErrorMessages {
 
     public static final String FILE_AND_METADATA_NOT_NULL_TOGETHER = "Both file and metadata cannot be null together";
 
+    public static final String MAX_ALLOWED_FILE_SIZE_EXCEEDED = "Please upload a file with size less than 50MB";
+
     public static final String FILE_MUST_NOT_BE_EMPTY = "If file metadata provided in the request body is null, file must not be empty!";
 
     public static final String FILE = "File";

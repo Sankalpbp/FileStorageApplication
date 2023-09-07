@@ -10,12 +10,14 @@ import ai.typeface.filestorageservice.service.FileManagementService;
 import com.google.cloud.storage.Blob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
@@ -25,6 +27,9 @@ import java.util.UUID;
 public class FileManagementController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger ( FileManagementController.class );
+
+    @Value ( "${spring.servlet.multipart.max-request-size}" )
+    private String maxAllowedFileSize;
 
     private final FileManagementService service;
 
@@ -43,6 +48,10 @@ public class FileManagementController {
             LOGGER.error (ValidationErrorMessages.EMPTY_FILE_ERROR);
             throw new RuntimeException ( ValidationErrorMessages.EMPTY_FILE_ERROR );
         }
+        if ( !isFileSizeWithinRange( file.getSize ()) ) {
+            LOGGER.error ( ValidationErrorMessages.MAX_ALLOWED_FILE_SIZE_EXCEEDED );
+            throw new MaxUploadSizeExceededException ( file.getSize () );
+        }
         return ResponseEntity.status ( HttpStatus.CREATED ).body ( service.upload ( file ) );
     }
 
@@ -55,6 +64,11 @@ public class FileManagementController {
         if ( file.isEmpty () ) {
             LOGGER.error ( ValidationErrorMessages.FILE_MUST_NOT_BE_EMPTY );
             throw new RuntimeException ( ValidationErrorMessages.EMPTY_FILE_ERROR );
+        }
+
+        if ( isFileSizeWithinRange( file.getSize ()) ) {
+            LOGGER.error ( ValidationErrorMessages.MAX_ALLOWED_FILE_SIZE_EXCEEDED );
+            throw new MaxUploadSizeExceededException ( file.getSize () );
         }
 
         return ResponseEntity.ok ( service.updateFileData ( file, fileIdentifier ) );
@@ -117,4 +131,9 @@ public class FileManagementController {
         return ResponseEntity.ok ( files );
     }
 
+    private boolean isFileSizeWithinRange ( long bytes ) {
+        long allowedFileSize = Long.parseLong ( maxAllowedFileSize.substring ( 0, maxAllowedFileSize.length () - 2 ) );
+        long uploadedFileSize = Math.round ( (float) bytes / ( 1024 * 1024 ) );
+        return allowedFileSize > uploadedFileSize;
+    }
 }
