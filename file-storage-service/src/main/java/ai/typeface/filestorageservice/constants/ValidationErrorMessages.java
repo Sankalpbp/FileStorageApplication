@@ -2,6 +2,7 @@ package ai.typeface.filestorageservice.constants;
 
 public final class ValidationErrorMessages {
 
+
     private ValidationErrorMessages () {}
 
     public static final String EMPTY_FILE_ERROR = "File provided in the request is empty";
@@ -29,5 +30,6 @@ public final class ValidationErrorMessages {
 
     public static final String MALFORMED_FILENAME = "An error occurred while reading the file. Malformed filename. Should be of type: name.type";
 
+    public static final String FILE_TYPE_UPDATE_ERROR = "Content type of the file provided doesn't match with the existing file.";
 
 }

@@ -106,4 +106,10 @@ public final class FileMetadataUtil {
         return partsOfFile [ partsOfFile.length - 1 ];
     }
 
+    public static void validateFileType ( String originalFileName, String filename ) {
+        if ( !extractFileType ( originalFileName ).equals ( extractFileType ( filename ) ) ) {
+            LOGGER.error ( ValidationErrorMessages.FILE_TYPE_UPDATE_ERROR );
+            throw new FileMetadataValidationException ( HttpStatus.BAD_REQUEST, ValidationErrorMessages.FILE_TYPE_UPDATE_ERROR );
+        }
+    }
 }

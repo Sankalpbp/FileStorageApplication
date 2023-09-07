@@ -3,6 +3,7 @@ package ai.typeface.filestorageservice.service.impl;
 import ai.typeface.filestorageservice.constants.ApiConstants;
 import ai.typeface.filestorageservice.constants.FailureMessages;
 import ai.typeface.filestorageservice.constants.InfoMessages;
+import ai.typeface.filestorageservice.constants.ValidationErrorMessages;
 import ai.typeface.filestorageservice.dtos.FileMetadataDTO;
 import ai.typeface.filestorageservice.dtos.FileMetadataPageResponse;
 import ai.typeface.filestorageservice.exception.GoogleCloudStorageException;
@@ -70,6 +71,8 @@ public class FileManagementServiceImpl implements FileManagementService {
         FileMetadataDTO metadata = fileMetadataService.findByUniqueIdentifier ( fileIdentifier );
 
         String contentType = CloudStorageUtil.getContentType ( originalFileName );
+        FileMetadataUtil.validateFileType ( originalFileName, metadata.getFilename () );
+
         String fileURL = cloudStorageService.updateFile ( file, metadata.getFilename (), contentType );
 
         if ( fileURL == null || fileURL.isBlank () ) {
