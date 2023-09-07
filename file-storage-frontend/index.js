@@ -237,6 +237,12 @@ function updateFileDataListenerAction ( event ) {
 uploadButton.addEventListener ( 'click', async event => {
 
     const fileInput = document.querySelector ( '.fileInput' );
+    if ( ( fileInput.files [ 0 ].size / ( 1024 * 1024 ) ) > 50 ) {
+        errorMessage.textContent = 'Please upload a file with size less than 50MB';
+        errorMessage.classList = 'text-danger';
+        removeMessage ( errorMessage );
+        return;
+    }
 
     if ( fileInput.files.length == 0 ) {
         errorMessage.textContent = 'Please select a file!';
@@ -250,6 +256,7 @@ uploadButton.addEventListener ( 'click', async event => {
     formData.append ( 'file', fileInput.files [ 0 ] );
 
     await uploadFile ( formData );
+    formData.entries ()
     createList ( FIRST_PAGE, PAGE_SIZE, SORT_BY_FIELD, SORT_BY_DIRECTION );
 });
 
@@ -318,7 +325,6 @@ async function updateFile ( uniqueIdentifier, formData ) {
 }
 
 async function uploadFile(formData) {
-
     const POST_URL = `${url ()}/upload`;
 
     try {
@@ -331,7 +337,7 @@ async function uploadFile(formData) {
     
         if ( response.status !== 201 ) {
             errorMessage.textContent = `Upload failed!\n${data.message}`;
-            errorMessage.style.color = 'text-danger';
+            errorMessage.classList = 'text-danger';
             return;
         } else {
             errorMessage.textContent = '';
