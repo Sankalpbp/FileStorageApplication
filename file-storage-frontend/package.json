@@ -5,11 +5,41 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "ai.typeface.file-storage-application",
+    "productName": "File Storage Application",
+    "directories": {
+      "output": "dist"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "build/icon.icns"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "build/icon.png", 
+      "category": "Utility", 
+      "desktop": {
+        "Name": "MyElectronApp", 
+        "Comment": "My Electron App", 
+        "Terminal": "false", 
+        "Type": "Application" 
+      }
+    }
   },
   "author": "Sankalp Arora",
   "license": "ISC",
   "dependencies": {
+  },
+  "devDependencies": {
+    "electron-builder": "^24.6.4",
     "electron": "^26.2.0"
   }
 }
