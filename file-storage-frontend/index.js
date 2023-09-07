@@ -345,15 +345,19 @@ async function uploadFile(formData) {
     }
 }
 
-function createFileListItem ( filename, uniqueIdentifier ) {
+function createFileListItem ( file, uniqueIdentifier ) {
     const row = document.createElement ( 'div' );
     row.classList = 'row mt-3';
     row.uniqueIdentifier = uniqueIdentifier;
-    row.filename = filename;
+    row.filename = file.filename;
 
     const filenameDiv = document.createElement ( 'div' );
     filenameDiv.classList = 'col-4 m-1 mt-4';
-    filenameDiv.textContent = filename;
+    filenameDiv.textContent = file.filename;
+
+    const sizeDiv = document.createElement ( 'div' );
+    sizeDiv.classList = 'col-1 m-1 mt-4';
+    sizeDiv.textContent = Math.round ( file.size / 1000 ) + ' KB';
 
     const downloadButton = document.createElement ( 'button' );
     downloadButton.classList = 'col-1 m-1 btn btn-outline-info download-button';
@@ -376,6 +380,7 @@ function createFileListItem ( filename, uniqueIdentifier ) {
     deleteButton.addEventListener ( 'click', deleteListenerAction );
 
     row.appendChild ( filenameDiv );
+    row.appendChild ( sizeDiv );
     row.appendChild ( downloadButton );
     row.appendChild ( updateFileDataButton );
     row.appendChild ( updateFileMetadataButton );
@@ -416,8 +421,24 @@ async function createList ( pageNumber, pageSize, sortBy, sortDir ) {
     previousButton.disabled = ( apiResponse.pageNumber === 0 );
     nextButton.disabled = ( apiResponse.last );
 
+    const legend = document.createElement ( 'div' );
+    legend.classList = 'row mt-3';
+
+    const filenameDiv = document.createElement ( 'div' );
+    filenameDiv.classList = 'col-4 m-1 mt-4 h5';
+    filenameDiv.textContent = 'File Name';
+
+    const sizeDiv = document.createElement ( 'div' );
+    sizeDiv.classList = 'col-1 m-1 mt-4 h5';
+    sizeDiv.textContent = 'Size';
+
+    legend.appendChild ( filenameDiv );
+    legend.appendChild ( sizeDiv );
+
+    fileListContainer.appendChild ( legend );
+
     apiResponse.content.forEach ( file => {
-        fileListContainer.appendChild ( createFileListItem ( file.filename, file.uniqueIdentifier ) );
+        fileListContainer.appendChild ( createFileListItem ( file, file.uniqueIdentifier ) );
         const updateBox = document.createElement ( 'div' );
         updateBox.classList = `row mt-2 mb-5 update-box-${file.uniqueIdentifier}`;
         fileListContainer.appendChild ( updateBox );
