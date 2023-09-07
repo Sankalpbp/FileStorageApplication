@@ -103,11 +103,11 @@ async function updateFileData ( uniqueIdentifier ) {
     const updateBox = document.querySelector ( `.update-box-${uniqueIdentifier}` );
 
     const errorDiv = document.createElement ( 'div' );
-    errorDiv.textContent = 'Please select a file!';
     errorDiv.classList = `text-danger error-${uniqueIdentifier}`;
+    updateBox.appendChild ( errorDiv );
 
     if ( fileInput.files.length == 0 ) {
-        updateBox.appendChild ( errorDiv );
+        errorDiv.textContent = 'Please select a file!';
         removeMessage ( errorDiv );
         return;
     } else {
@@ -115,8 +115,7 @@ async function updateFileData ( uniqueIdentifier ) {
     }
 
     if ( ( fileInput.files [ 0 ].size / ( 1024 * 1024 ) ) > 50 ) {
-        errorMessage.textContent = 'Please upload a file with size less than 50MB';
-        errorMessage.classList = 'text-danger';
+        errorDiv.textContent = 'Please upload a file with size less than 50MB';
         removeMessage ( errorMessage );
         return;
     }
@@ -124,8 +123,10 @@ async function updateFileData ( uniqueIdentifier ) {
     const formData = new FormData ();
     formData.append ( 'file', fileInput.files [ 0 ] );
 
-    await updateFile ( uniqueIdentifier, formData );
-    createList ( FIRST_PAGE, PAGE_SIZE, SORT_BY_FIELD, SORT_BY_DIRECTION );
+    const successful = await updateFile ( uniqueIdentifier, formData );
+    if ( successful ) {
+        createList ( FIRST_PAGE, PAGE_SIZE, SORT_BY_FIELD, SORT_BY_DIRECTION );
+    }
 }
 
 async function updateFileMetadata ( uniqueIdentifier, metadata ) {
@@ -133,19 +134,21 @@ async function updateFileMetadata ( uniqueIdentifier, metadata ) {
     const updateBox = document.querySelector ( `.update-box-${uniqueIdentifier}` );
 
     const errorDiv = document.createElement ( 'div' );
-    errorDiv.textContent = 'Please provide an updated filename!';
     errorDiv.classList = `text-danger error-${uniqueIdentifier}`;
+    updateBox.appendChild ( errorDiv );
 
     if ( !filename ) {
-        updateBox.appendChild ( errorDiv );
+        errorDiv.textContent = 'Please provide an updated filename!';
         removeMessage ( errorDiv );
         return;
     } else {
         errorDiv.textContent = '';
     }
 
-    await updateMetadata ( uniqueIdentifier, metadata );
-    createList ( currentPage, PAGE_SIZE, SORT_BY_FIELD, SORT_BY_DIRECTION );
+    const successful = await updateMetadata ( uniqueIdentifier, metadata );
+    if ( successful ) {
+        createList ( currentPage, PAGE_SIZE, SORT_BY_FIELD, SORT_BY_DIRECTION );
+    }
 }
 
 function updateFileMetadataListenerAction ( event ) {
@@ -296,12 +299,13 @@ async function updateMetadata ( uniqueIdentifier, metadata ) {
             const errorDiv = document.querySelector ( `.error-${uniqueIdentifier}` );
             errorDiv.textContent = data.message;
             removeMessage ( errorDiv );
-            return;
+            return false;
         }
 
         successMessage.textContent = 'File metadata has been saved successfully!';
         successMessage.classList = 'text-success';
         console.log('Response from server:', data);
+        return true;
     } catch ( error ) {
         console.error ( 'Error: ', error );
     }
@@ -322,11 +326,12 @@ async function updateFile ( uniqueIdentifier, formData ) {
             const errorDiv = document.querySelector ( `.error-${uniqueIdentifier}` );
             errorDiv.textContent = data.message;
             removeMessage ( errorDiv );
-            return;
+            return false;
         }
         successMessage.textContent = `Updated file has been saved successfully!`;
         successMessage.classList = 'text-success';
         console.log('Response from server:', data);
+        return true;
     } catch ( error ) {
         console.error ( 'Error: ', error );
     }
