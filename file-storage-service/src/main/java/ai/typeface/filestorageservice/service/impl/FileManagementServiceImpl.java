@@ -50,7 +50,7 @@ public class FileManagementServiceImpl implements FileManagementService {
         String newFilename = metadataDTO.getFilename();
         String fileURL = existingMetadata.getFileURL();
 
-        if ( !existingFilename.equals ( newFilename ) ) {
+        if ( newFilename != null && !existingFilename.equals ( newFilename ) ) {
             fileURL = cloudStorageService.updateFilename ( existingFilename, newFilename, contentType );
         }
 
