@@ -256,7 +256,6 @@ uploadButton.addEventListener ( 'click', async event => {
     formData.append ( 'file', fileInput.files [ 0 ] );
 
     await uploadFile ( formData );
-    formData.entries ()
     createList ( FIRST_PAGE, PAGE_SIZE, SORT_BY_FIELD, SORT_BY_DIRECTION );
 });
 
