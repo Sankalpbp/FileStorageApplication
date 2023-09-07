@@ -3,10 +3,8 @@ package ai.typeface.filestorageservice.service.impl;
 import ai.typeface.filestorageservice.constants.ApiConstants;
 import ai.typeface.filestorageservice.constants.FailureMessages;
 import ai.typeface.filestorageservice.constants.InfoMessages;
-import ai.typeface.filestorageservice.constants.Symbols;
 import ai.typeface.filestorageservice.dtos.FileMetadataDTO;
 import ai.typeface.filestorageservice.dtos.FileMetadataPageResponse;
-import ai.typeface.filestorageservice.entity.FileMetadata;
 import ai.typeface.filestorageservice.exception.GoogleCloudStorageException;
 import ai.typeface.filestorageservice.service.CloudStorageService;
 import ai.typeface.filestorageservice.service.FileManagementService;
@@ -14,8 +12,6 @@ import ai.typeface.filestorageservice.service.FileMetadataService;
 import ai.typeface.filestorageservice.util.CloudStorageUtil;
 import ai.typeface.filestorageservice.util.FileMetadataUtil;
 import com.google.cloud.storage.Blob;
-import io.micrometer.common.util.StringUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -23,12 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
-import java.math.BigInteger;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
 import java.util.UUID;
 
 @Service

@@ -27,10 +27,6 @@ import java.util.UUID;
 @RequestMapping ( "/files" )
 public class FileManagementController {
 
-    /*
-        TODO: Handle all the incoming arguments by the client ( validate the arguments )
-    */
-
     private static final Logger LOGGER = LoggerFactory.getLogger ( FileManagementController.class );
 
     private final FileManagementService service;

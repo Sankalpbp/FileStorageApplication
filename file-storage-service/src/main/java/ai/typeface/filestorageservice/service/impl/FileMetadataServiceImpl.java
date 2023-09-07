@@ -53,7 +53,6 @@ public class FileMetadataServiceImpl implements FileMetadataService {
         return entityToDTO ( metadata );
     }
 
-    /* TODO: Add pagination to get all files */
     @Override
     public FileMetadataPageResponse getAll (int pageNumber, int pageSize, String sortBy, String sortDir ) {
         Sort sort = sortDir.equalsIgnoreCase ( Sort.Direction.ASC.name () )

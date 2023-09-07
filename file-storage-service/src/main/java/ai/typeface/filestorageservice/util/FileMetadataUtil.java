@@ -94,7 +94,7 @@ public final class FileMetadataUtil {
     }
 
     private static void validateField(String fieldName, String existingValue, String newValue, String errorMessage) {
-        if (newValue != null && !existingValue.equals(newValue)) {
+        if (newValue != null && !newValue.equals(existingValue)) {
             LOGGER.error(getLoggerMessage(errorMessage), existingValue, newValue);
             throw new FileMetadataValidationException(HttpStatus.BAD_REQUEST,
                     getExceptionMessage(errorMessage, existingValue, newValue));
