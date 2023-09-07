@@ -114,6 +114,13 @@ async function updateFileData ( uniqueIdentifier ) {
         errorDiv.textContent = '';
     }
 
+    if ( ( fileInput.files [ 0 ].size / ( 1024 * 1024 ) ) > 50 ) {
+        errorMessage.textContent = 'Please upload a file with size less than 50MB';
+        errorMessage.classList = 'text-danger';
+        removeMessage ( errorMessage );
+        return;
+    }
+
     const formData = new FormData ();
     formData.append ( 'file', fileInput.files [ 0 ] );
 

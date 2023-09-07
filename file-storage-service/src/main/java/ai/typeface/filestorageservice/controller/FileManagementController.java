@@ -66,7 +66,7 @@ public class FileManagementController {
             throw new RuntimeException ( ValidationErrorMessages.EMPTY_FILE_ERROR );
         }
 
-        if ( isFileSizeWithinRange( file.getSize ()) ) {
+        if ( !isFileSizeWithinRange( file.getSize ()) ) {
             LOGGER.error ( ValidationErrorMessages.MAX_ALLOWED_FILE_SIZE_EXCEEDED );
             throw new MaxUploadSizeExceededException ( file.getSize () );
         }
