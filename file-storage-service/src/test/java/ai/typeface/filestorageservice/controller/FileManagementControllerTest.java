@@ -19,6 +19,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -36,6 +37,9 @@ public class FileManagementControllerTest {
     public void setUp () {
         MockitoAnnotations.openMocks( this );
         controller = new FileManagementController( service );
+
+        String mockedMaxAllowedFileSize = "50MB"; // Replace with your desired mock value
+        ReflectionTestUtils.setField( controller, "maxAllowedFileSize", mockedMaxAllowedFileSize );
     }
 
     @Test

@@ -43,9 +43,9 @@ public class FileManagementServiceImplTest {
         MockitoAnnotations.openMocks(this);
         fileManagementService = new FileManagementServiceImpl ( cloudStorageService, fileMetadataService );
         Mockito.when ( fileMetadataService.findByUniqueIdentifier(ArgumentMatchers.any ( UUID.class ))).thenReturn ( metadataDTO );
-        Mockito.when ( metadataDTO.getFilename () ).thenReturn ( "filename.filetype" );
-        Mockito.when ( metadata.getFilename () ).thenReturn ( "filename.filetype" );
-        Mockito.when ( metadataDTO.getFileType () ).thenReturn ( "filetype" );
+        Mockito.when ( metadataDTO.getFilename () ).thenReturn ( "filename.txt" );
+        Mockito.when ( metadata.getFilename () ).thenReturn ( "filename.txt" );
+        Mockito.when ( metadataDTO.getFileType () ).thenReturn ( "txt" );
         Mockito.when ( metadataDTO.getFileURL () ).thenReturn ( "fileURL" );
         Mockito.when ( metadataDTO.getUniqueIdentifier () ).thenReturn ( UUID.randomUUID() );
         Mockito.when ( fileMetadataService.updateFileMetadata(ArgumentMatchers.any ( FileMetadataDTO.class ), ArgumentMatchers.any ( UUID.class ))).thenReturn ( metadataDTO );

@@ -14,6 +14,9 @@ import org.springframework.web.client.RestTemplate;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CorsFilterConfigurationTest {
 
+    /**
+     * This test requires the server to be running to hit it and get the response
+     */
     @Test
     public void testCorsConfiguration() {
         String apiUrl = "http://localhost:" + 8081 + "/files";
